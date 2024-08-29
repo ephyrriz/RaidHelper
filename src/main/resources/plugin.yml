@@ -1,0 +1,6 @@
+name: raidhelper
+version: '1.0'
+main: ru.ephy.raidhelper.Raidhelper
+api-version: '1.20'
+authors: [ ephy ]
+description: Listens to any Events in the Minecraft World.
