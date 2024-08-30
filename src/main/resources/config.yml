@@ -1,0 +1,19 @@
+# Configuration for RaidHelper plugin
+
+# How high above the bell mobs will spawn
+height_above_bell: 10
+
+# Radius of activation & sending action bar message
+radius: 50
+
+# Message to display in the action bar
+action_bar_message: "If you can't find raiders just ring a bell, and they will spawn above it."
+
+# How many seconds after which players can use the bell ability
+bell_cooldown_seconds: 60
+
+# How often active raids should be checked? (In ticks. 20 ticks = 1 second).
+update_frequency: 20
+
+# With what delay should the teleport be completed? (In ticks. 20 ticks = 1 second).
+teleport_delay: 60

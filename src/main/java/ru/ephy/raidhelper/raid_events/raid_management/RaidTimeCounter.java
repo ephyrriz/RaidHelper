@@ -2,29 +2,30 @@ package ru.ephy.raidhelper.raid_events.raid_management;
 
 import ru.ephy.raidhelper.configuration.Config;
 
-public class RaidInfo {
+public class RaidTimeCounter {
 
-    private final Config config = Config.getInstance(); // Instance of the config file.
-    private final int time = config.getTime(); // Time after which the next phase starts.
-    private int raidTimeCounter; // Counter.
+    private final Config config = Config.getInstance();
 
-    public RaidInfo() {
-        this.raidTimeCounter = 0;
+    private final int time = config.getTime();
+    private int counter;
+
+    public RaidTimeCounter() {
+        this.counter = 0;
     }
 
     public int getTimeCounter() {
-        return raidTimeCounter;
+        return counter;
     }
 
     public void incrementTimeCounter() {
-        this.raidTimeCounter++;
+        this.counter++;
     }
 
     public void resetTimeCounter() {
-        this.raidTimeCounter = 0;
+        this.counter = 0;
     }
 
     public boolean isRaidDurationExceeded() {
-        return raidTimeCounter > time;
+        return counter > time;
     }
 }

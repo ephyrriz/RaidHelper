@@ -1,4 +1,4 @@
-package ru.ephy.raidhelper.raidevents;
+package ru.ephy.raidhelper.raid_events.raid_management;
 
 import org.bukkit.Location;
 import org.bukkit.Raid;
@@ -10,9 +10,9 @@ import java.util.Set;
 
 public class RaidManager {
 
-    private static RaidManager instance; // Instance of the class.
-    private final HashMap<Location, Raid> raidList = new HashMap<>(); // List of all raids and their locations accordingly.
-    private final HashMap<Location, RaidInfo> raidInfo = new HashMap<>(); // List of raids and their counters accordingly.
+    private static RaidManager instance;
+
+    private final HashMap<Location, RaidData> raidDataHashMap = new HashMap<>();
 
     public static RaidManager getInstance() {
         if (instance == null) {
@@ -21,28 +21,27 @@ public class RaidManager {
         return instance;
     }
 
-    public void addRaid(@NotNull final Location location, @NotNull final Raid raid) {
-        raidList.put(location, raid);
-        raidInfo.put(location, new RaidInfo());
+    public void addRaid(@NotNull final Raid raid, @NotNull final Location raidLocation) {
+        final RaidTimeCounter raidTimeCounter = new RaidTimeCounter();
+        final RaidData raidData = new RaidData(raid, raidTimeCounter);
+        raidDataHashMap.put(raidLocation, raidData);
     }
 
-    @Nullable
     public Raid getRaid(@NotNull final Location location) {
-        return raidList.get(location);
+        final RaidData raidData = raidDataHashMap.get(location);
+        return (raidData != null) ? raidData.getRaid() : null;
     }
 
-    @Nullable
-    public RaidInfo getRaidInfo(@NotNull final Location location) {
-        return raidInfo.get(location);
+    public RaidTimeCounter getRaidTimeCounter(@NotNull final Location location) {
+        final RaidData raidData = raidDataHashMap.get(location);
+        return (raidData != null) ? raidData.getRaidTimeCounter() : null;
     }
 
     public void removeRaid(@NotNull final Location location) {
-        raidList.remove(location);
-        raidInfo.remove(location);
+        raidDataHashMap.remove(location);
     }
 
-    @NotNull
     public Set<Location> getAllRaidLocations() {
-        return raidList.keySet();
+        return raidDataHashMap.keySet();
     }
 }
