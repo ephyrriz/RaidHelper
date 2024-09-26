@@ -1,6 +1,6 @@
 package ru.ephy.raidhelper.raid_events.raid_management;
 
-import ru.ephy.raidhelper.configuration.Config;
+import ru.ephy.raidhelper.files.Config;
 
 public class RaidTimeCounter {
 

@@ -3,7 +3,6 @@ package ru.ephy.raidhelper.raid_events.raid_management;
 import org.bukkit.Location;
 import org.bukkit.Raid;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Set;

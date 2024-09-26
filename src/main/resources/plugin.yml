@@ -2,7 +2,8 @@ name: raidhelper
 version: '1.0'
 main: ru.ephy.raidhelper.Raidhelper
 api-version: '1.20'
-authors: [ ephy ]
+
+author: ephy
 description: Helps with Raids. If you can't find last raiders and they're within the raid zone,
               after configured time you will be able to call a bell within the raid zone to
-                teleport all lost raiders to the configured location above the bell.
+              teleport all lost raiders to the configured location above the bell.

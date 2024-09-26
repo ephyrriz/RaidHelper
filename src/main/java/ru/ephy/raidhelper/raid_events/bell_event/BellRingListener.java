@@ -2,7 +2,6 @@ package ru.ephy.raidhelper.raid_events.bell_event;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -13,7 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BellRingEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
-import ru.ephy.raidhelper.configuration.Config;
+import ru.ephy.raidhelper.files.Config;
 import ru.ephy.raidhelper.raid_events.raid_management.RaidTimeCounter;
 import ru.ephy.raidhelper.raid_events.raid_management.RaidManager;
 
