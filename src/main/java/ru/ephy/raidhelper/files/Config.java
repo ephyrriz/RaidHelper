@@ -46,7 +46,7 @@ public class Config {
             message = fileConfig.getString(MAIN_SETTINGS + ".message", "If you can't find the raiders, just ring a bell and they will spawn above it.");
             height = fileConfig.getInt(MAIN_SETTINGS + ".height", 10);
             radius = fileConfig.getInt(MAIN_SETTINGS + ".radius", 50);
-            cooldown = fileConfig.getInt(MAIN_SETTINGS + ".cooldown", 1200);
+            cooldown = fileConfig.getInt(MAIN_SETTINGS + ".cooldown", 60);
             delay = fileConfig.getInt(MAIN_SETTINGS + ".delay", 60);
             // Advanced settings
             frequencyWorld = fileConfig.getInt(ADVANCED_SETTINGS + ".frequencyWorld", 100);

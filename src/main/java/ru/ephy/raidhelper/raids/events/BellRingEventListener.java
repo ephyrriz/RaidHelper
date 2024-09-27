@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Raid;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.Raider;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,7 +21,7 @@ import java.util.Map;
  * and teleports raiders based on the bell's location.
  */
 @RequiredArgsConstructor
-public class RingBellEvent implements Listener {
+public class BellRingEventListener implements Listener {
 
     private final JavaPlugin plugin;        // Plugin instance reference
     private final RaidManager raidManager;  // RaidManager instance reference
@@ -33,9 +34,11 @@ public class RingBellEvent implements Listener {
      */
     @EventHandler
     public void on(final BellRingEvent event) {
-        final Location bellLocation = event.getBlock().getLocation();
-        if (isWorldValid(bellLocation)) {
-            handleRaidTeleport(bellLocation);
+        if (event.getEntity() instanceof Player) {
+            final Location bellLocation = event.getBlock().getLocation();
+            if (isWorldValid(bellLocation)) {
+                handleRaidTeleport(bellLocation);
+            }
         }
     }
 

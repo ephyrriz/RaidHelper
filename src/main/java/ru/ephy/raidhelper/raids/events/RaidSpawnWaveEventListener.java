@@ -13,7 +13,7 @@ import ru.ephy.raidhelper.raids.RaidManager;
  * and resets the counter for the raid if it is an initialized one.
  */
 @RequiredArgsConstructor
-public class RaidNextWaveEvent implements Listener {
+public class RaidSpawnWaveEventListener implements Listener {
     private final RaidManager raidManager; // RaidManager instance reference
 
     /**
