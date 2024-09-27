@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Raid;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 import ru.ephy.raidhelper.files.Config;
 
 import java.util.HashMap;
@@ -25,7 +26,20 @@ public class RaidManager {
     }
 
     public void removeRaid(final Raid raid) {
-        raidMap.remove(raid);
+        final RaidLogic raidLogic = getRaidLogic(raid);
+        if (raidLogic != null) {
+            raidLogic.stopCounter();
+            raidMap.remove(raid);
+        }
+    }
+
+    @Nullable
+    public RaidLogic getRaidLogic(final Raid raid) {
+        final RaidLogic raidLogic = raidMap.get(raid);
+        if (raidLogic != null) {
+            return raidMap.get(raid);
+        }
+        return null;
     }
 
     public boolean isRaidInMap(final Raid raid) {

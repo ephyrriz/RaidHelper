@@ -75,6 +75,12 @@ public class RingBellEvent implements Listener {
         return bellLocation.distanceSquared(raid.getLocation()) <= radiusSquared;
     }
 
+    /**
+     * Teleports raiders to the specified location after a delay.
+     *
+     * @param raid the raid whose raiders are to be teleported
+     * @param location the location to teleport to
+     */
     private void teleportRaiders(final Raid raid, final Location location) {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             location.add(0, config.getHeight(), 0); // Adjust the Y coordinate for teleportation
