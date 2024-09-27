@@ -1,12 +1,12 @@
-package ru.ephy.raidhelper.event;
+package ru.ephy.raidhelper.raids;
 
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.Raid;
+import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.files.Config;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -22,25 +22,13 @@ public class RaidScheduler {
     private final Config config;              // Holds configuration data
     private final Logger logger;              // Logger for logging information
 
-    private Map<Raid, RaidData> raidDataMap;  // Stores the mapping of raids to their associated data
-
     /**
      * Starts the raid scheduler to periodically
      * check for active raids.
      */
     public void startScheduler() {
-        // Initializes the raid data map.
-        initializeRaidDataMap();
-        // Schedules a task.
-        Bukkit.getScheduler().runTaskTimer(plugin, this::getActiveRaidsInWorlds, 0, config.getFrequency());
+        Bukkit.getScheduler().runTaskTimer(plugin, this::getActiveRaidsInWorlds, 0, config.getFrequencyWorld());
         logger.info("RaidScheduler started successfully.");
-    }
-
-    /**
-     * Initializes the necessary variables for the scheduler.
-     */
-    private void initializeRaidDataMap() {
-        raidDataMap = raidManager.getRaidMap();
     }
 
     /**
@@ -48,8 +36,11 @@ public class RaidScheduler {
      * active raids and analyzes them one by one.
      */
     private void getActiveRaidsInWorlds() {
-        config.getWorldList().forEach(world ->
-                world.getRaids().forEach(this::addRaidToMap));
+        for (final World world : config.getWorldList()) {
+            for (final Raid raid : world.getRaids()) {
+                addRaidToMap(raid);
+            }
+        }
     }
 
     /**
@@ -60,8 +51,8 @@ public class RaidScheduler {
      */
     private void addRaidToMap(final Raid raid) {
         // If the raid is not already in the map, add it with its data
-        if (!raidDataMap.containsKey(raid)) {
-            raidDataMap.put(raid, new RaidData(raid.getActiveTicks(), raid.getLocation(), raid));
+        if (!raidManager.isRaidInMap(raid)) {
+            raidManager.addRaid(raid);
         }
     }
 }

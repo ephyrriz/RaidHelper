@@ -1,9 +1,9 @@
 package ru.ephy.raidhelper;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.ephy.raidhelper.event.RaidManager;
+import ru.ephy.raidhelper.raids.RaidManager;
 import ru.ephy.raidhelper.files.Config;
-import ru.ephy.raidhelper.event.RaidScheduler;
+import ru.ephy.raidhelper.raids.RaidScheduler;
 
 import java.util.logging.Logger;
 
@@ -37,7 +37,7 @@ public final class Raidhelper extends JavaPlugin {
         config.loadValues();
 
         // Initialize raid manager and scheduler
-        final RaidManager raidManager = new RaidManager();
+        final RaidManager raidManager = new RaidManager(this, config);
         final RaidScheduler raidScheduler = new RaidScheduler(this, raidManager, config, logger);
         raidScheduler.startScheduler();
     }

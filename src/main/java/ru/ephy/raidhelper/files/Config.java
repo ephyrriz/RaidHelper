@@ -21,16 +21,20 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public class Config {
 
+    private static final String MAIN_SETTINGS = "settings.main";
+    private static final String ADVANCED_SETTINGS = "settings.advanced";
+
     private final JavaPlugin plugin;            // Plugin's instance.
     private final FileConfiguration fileConfig; // File config.
-    private final Logger logger;
+    private final Logger logger;                // Logger.
 
     private List<World> worldList;              // Worlds list.
     private String message;                     // Action bar message that is shown for players.
     private int height;                         // How far above raiders will be teleported.
     private int radius;                         // The radious of the bell's effect.
     private int cooldown;                       // After how many ticks will work.
-    private int frequency;                      // How often check for the raids.
+    private int frequencyWorld;                 // How often check for the raids.
+    private int frequencyRaid;                  // How often check the current time of the raid.
     private int delay;                          // After how many ticks teleport the raiders.
 
     /**
@@ -38,13 +42,16 @@ public class Config {
      */
     public void loadValues() {
         try {
+            // Main settings
+            message = fileConfig.getString(MAIN_SETTINGS + ".message", "If you can't find the raiders, just ring a bell and they will spawn above it.");
+            height = fileConfig.getInt(MAIN_SETTINGS + ".height", 10);
+            radius = fileConfig.getInt(MAIN_SETTINGS + ".radius", 50);
+            cooldown = fileConfig.getInt(MAIN_SETTINGS + ".cooldown", 1200);
+            delay = fileConfig.getInt(MAIN_SETTINGS + ".delay", 60);
+            // Advanced settings
+            frequencyWorld = fileConfig.getInt(ADVANCED_SETTINGS + ".frequencyWorld", 100);
+            frequencyRaid = fileConfig.getInt(ADVANCED_SETTINGS + ".frequencyRaid", 20);
             worldList = loadWorldList();
-            message = fileConfig.getString("settings.message", "If you can't find the raiders, just ring a bell and they will spawn above it.");
-            height = fileConfig.getInt("settings.height", 10);
-            radius = fileConfig.getInt("settings.radius", 50);
-            cooldown = fileConfig.getInt("settings.cooldown", 1200);
-            frequency = fileConfig.getInt("settings.frequency", 20);
-            delay = fileConfig.getInt("settings.delay", 60);
         } catch (final Exception e) {
             logger.severe("An unexpected error occured during loading the values from the config: " + e.getMessage());
             e.printStackTrace();
