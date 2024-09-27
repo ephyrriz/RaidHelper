@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  * settings before enabling the plugin.
  */
 public final class Raidhelper extends JavaPlugin {
-    private Logger logger; // Logger
+    private Logger logger; //  // Logger for logging information
 
     /**
      * The logic executed when the plugin is enabled.
