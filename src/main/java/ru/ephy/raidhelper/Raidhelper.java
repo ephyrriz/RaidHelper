@@ -59,7 +59,7 @@ public final class Raidhelper extends JavaPlugin {
         final BellRingEventListener bellRingEventListener = new BellRingEventListener
                 (this, raidManager, config);
         final RaidFinishEventListener raidFinishEventListener = new RaidFinishEventListener
-                (raidManager);
+                (raidManager, logger);
         final RaidSpawnWaveEventListener raidSpawnWaveEventListener = new RaidSpawnWaveEventListener
                 (raidManager);
 

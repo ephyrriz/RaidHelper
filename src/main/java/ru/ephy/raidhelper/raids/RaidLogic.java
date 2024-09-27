@@ -41,7 +41,7 @@ public class RaidLogic {
                     plugin, () -> {
                         updateRaidCounter();
                         notifyPlayers();
-                    }, 0, config.getFrequencyRaid()).getTaskId();
+                    }, 0, 20).getTaskId();
         } catch (final Exception e) {
             logger.severe("An error occured during starting the scheduler for the raid: " + raid + ". Exception: " + e.getMessage());
             e.printStackTrace();
@@ -78,6 +78,7 @@ public class RaidLogic {
     public void resetRaidCounter() {
         raidCounter = 0;
         isBellActive = false;
+        logger.warning("E: Was reset. raidCounter: " + raidCounter + ". isBell: " + isBellActive);
     }
 
     /**
@@ -85,8 +86,11 @@ public class RaidLogic {
      */
     public void stopRaidCounter() {
         if (counterTaskId != -1) {
+            logger.warning("F: Condition did pass for stopCounter. Raid: " + raid + ". taskId: " + counterTaskId);
             Bukkit.getScheduler().cancelTask(counterTaskId);
             counterTaskId = -1;
+            return;
         }
+        logger.warning("G: Condition didn't pass for stopCounter. Raid: " + raid + ". taskId: " + counterTaskId);
     }
 }

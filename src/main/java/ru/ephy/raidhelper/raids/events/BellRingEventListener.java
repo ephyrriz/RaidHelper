@@ -82,13 +82,13 @@ public class BellRingEventListener implements Listener {
      * Teleports raiders to the specified location after a delay.
      *
      * @param raid the raid whose raiders are to be teleported
-     * @param location the location to teleport to
+     * @param bellLocation the location to teleport to
      */
-    private void teleportRaiders(final Raid raid, final Location location) {
+    private void teleportRaiders(final Raid raid, final Location bellLocation) {
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            location.add(0, config.getHeight(), 0); // Adjust the Y coordinate for teleportation
+            final Location updatedLocation = bellLocation.clone().add(0, config.getHeight(), 0); // Adjust the Y coordinate for teleportation
             for (final Raider raider : raid.getRaiders()) {
-                raider.teleport(location);
+                raider.teleport(updatedLocation);
             }
         }, config.getDelay());
     }

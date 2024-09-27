@@ -41,11 +41,15 @@ public class RaidManager {
      * @param raid The raid to be removed.
      */
     public void removeRaid(final Raid raid) {
+        logger.warning("H: removeFiredd. Raid: " + raid);
         final RaidLogic raidLogic = getRaidLogic(raid);
         if (raidLogic != null) {
+            logger.warning("I: Yes pass: raid: " + raid + ". RaidLogic: " + raidLogic);
             raidLogic.stopRaidCounter();
             raidMap.remove(raid);
+            return;
         }
+        logger.warning("I: No pass: raid: " + raid);
     }
 
     /**
