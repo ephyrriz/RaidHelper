@@ -1,12 +1,12 @@
-package ru.ephy.raidhelper.raid_events.raid_management;
+package ru.ephy.raidhelper.event;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Location;
 import org.bukkit.Raid;
 
-@Getter
 @RequiredArgsConstructor
 public class RaidData {
+    private final long activeTicks;
+    private final Location location;
     private final Raid raid;
-    private final RaidTimeCounter raidTimeCounter;
 }

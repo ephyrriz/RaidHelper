@@ -1,53 +1,49 @@
 package ru.ephy.raidhelper;
 
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.ephy.raidhelper.event.RaidManager;
 import ru.ephy.raidhelper.files.Config;
-import ru.ephy.raidhelper.raid_events.RaidEventsListener;
-import ru.ephy.raidhelper.raid_events.RaidScheduler;
-import ru.ephy.raidhelper.raid_events.bell_event.BellRingListener;
-import ru.ephy.raidhelper.raid_events.raid_management.RaidManager;
+import ru.ephy.raidhelper.event.RaidScheduler;
 
 import java.util.logging.Logger;
 
 /**
- * This class is the main one. It initializes all necessary
- * variables and instances before booting the rest parts
- * of the itself.
+ * The main class for the RaidHelper plugin.
+ * This class initializes all necessary instances and
+ * settings before enabling the plugin.
  */
 public final class Raidhelper extends JavaPlugin {
     private Logger logger;
 
     /**
-     * The logic of the plugin when enabling.
+     * The logic executed when the plugin is enabled.
      */
     @Override
     public void onEnable() {
-        registerListeners();
         initializeVariables();
         logger.info("Plugin enabled.");
     }
 
-    private void registerListeners() {
-        final PluginManager pluginManager = getServer().getPluginManager();
-        pluginManager.registerEvents(new RaidEventsListener(this), this);
-        pluginManager.registerEvents(new BellRingListener(this), this);
-    }
-
+    /**
+     * Initializes the necessary variables and components
+     * for the plugin.
+     */
     private void initializeVariables() {
         logger = getLogger();
-
         saveDefaultConfig();
-        final Config config = new Config(getConfig());
-        config.initialize();
 
+        // Load configuration settings
+        final Config config = new Config(this, getConfig(), logger);
+        config.loadValues();
+
+        // Initialize raid manager and scheduler
         final RaidManager raidManager = new RaidManager();
-
-        new RaidScheduler(this, raidManager, config, logger).startScheduler();
+        final RaidScheduler raidScheduler = new RaidScheduler(this, raidManager, config, logger);
+        raidScheduler.startScheduler();
     }
 
     /**
-     * The logic of the plugin when disabling.
+     * The logic executed when the plugin is disabled.
      */
     @Override
     public void onDisable() {
