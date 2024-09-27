@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  * settings before enabling the plugin.
  */
 public final class Raidhelper extends JavaPlugin {
-    private Logger logger;
+    private Logger logger; // Logger
 
     /**
      * The logic executed when the plugin is enabled.
@@ -37,7 +37,7 @@ public final class Raidhelper extends JavaPlugin {
         config.loadValues();
 
         // Initialize raid manager and scheduler
-        final RaidManager raidManager = new RaidManager(this, config);
+        final RaidManager raidManager = new RaidManager(this, config, logger);
         final RaidScheduler raidScheduler = new RaidScheduler(this, raidManager, config, logger);
         raidScheduler.startScheduler();
     }

@@ -22,9 +22,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RingBellEvent implements Listener {
 
-    private final JavaPlugin plugin;
-    private final RaidManager raidManager;
-    private final Config config;
+    private final JavaPlugin plugin;        // Plugin instance reference
+    private final RaidManager raidManager;  // RaidManager instance reference
+    private final Config config;            // Holds configuration data
 
     /**
      * Handles the BellRingEvent when a bell is rung.

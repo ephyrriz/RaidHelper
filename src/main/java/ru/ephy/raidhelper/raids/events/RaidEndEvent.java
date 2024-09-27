@@ -14,14 +14,13 @@ import ru.ephy.raidhelper.raids.RaidManager;
  */
 @RequiredArgsConstructor
 public class RaidEndEvent implements Listener {
-    private final RaidManager raidManager;
+    private final RaidManager raidManager; // RaidManager instance reference
 
     /**
-     * Listens to raid finish event. Removes
-     * the raid if it was in the active raids
-     * map.
+     * Listens to raid finish event; removes
+     * the raid if it was in the active raids map.
      *
-     * @param event raid finish event.
+     * @param event the RaidFinishEvent
      */
     @EventHandler
     public void on(final RaidFinishEvent event) {

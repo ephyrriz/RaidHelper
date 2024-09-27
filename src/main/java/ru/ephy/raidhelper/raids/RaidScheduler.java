@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public class RaidScheduler {
 
-    private final JavaPlugin plugin;          // Reference to the main plugin instance
+    private final JavaPlugin plugin;          // Plugin instance reference
     private final RaidManager raidManager;    // Manages raids and their data
     private final Config config;              // Holds configuration data
     private final Logger logger;              // Logger for logging information
@@ -25,9 +25,17 @@ public class RaidScheduler {
     /**
      * Starts the raid scheduler to periodically
      * check for active raids.
+     *
+     * @throws IllegalArgumentException throws in case if an inappropriate argument was passed
      */
-    public void startScheduler() {
-        Bukkit.getScheduler().runTaskTimer(plugin, this::getActiveRaidsInWorlds, 0, config.getFrequencyWorld());
+    public void startScheduler() throws IllegalArgumentException {
+        try {
+            Bukkit.getScheduler().runTaskTimer(plugin, this::getActiveRaidsInWorlds, 0, config.getFrequencyWorld());
+        } catch (final Exception e) {
+            logger.severe("An error occured during starting the scheduler: " + e.getMessage());
+            e.printStackTrace();
+            return;
+        }
         logger.info("RaidScheduler started successfully.");
     }
 
