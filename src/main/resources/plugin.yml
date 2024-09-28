@@ -4,6 +4,7 @@ main: ru.ephy.raidhelper.Raidhelper
 api-version: '1.20'
 
 author: ephy
-description: Helps with Raids. If you can't find last raiders and they're within the raid zone,
-              after configured time you will be able to ring a bell within the raid zone to
-              teleport all lost raiders to the configured location above the bell.
+description: Makes fights with raiders way more comfortable. If you cannot find
+             the last raiders, ring a bell and they will spawn above it.
+             There are several configurations you would want to look at before
+             before using the plugin.

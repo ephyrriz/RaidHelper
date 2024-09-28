@@ -7,7 +7,7 @@ import org.bukkit.Raid;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
-import ru.ephy.raidhelper.files.Config;
+import ru.ephy.raidhelper.config.Config;
 
 import java.util.*;
 import java.util.logging.Logger;

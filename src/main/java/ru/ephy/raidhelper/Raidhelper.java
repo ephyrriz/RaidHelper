@@ -3,76 +3,108 @@ package ru.ephy.raidhelper;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.main.RaidManager;
-import ru.ephy.raidhelper.files.Config;
+import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.main.RaidMonitor;
 import ru.ephy.raidhelper.main.RaidScheduler;
-import ru.ephy.raidhelper.main.events.BellRingEventListener;
-import ru.ephy.raidhelper.main.events.RaidFinishEventListener;
+import ru.ephy.raidhelper.main.events.BellListener;
+import ru.ephy.raidhelper.main.events.RaidEndListener;
 
 import java.util.logging.Logger;
 
 /**
  * The main class for the RaidHelper plugin.
- * This class initializes all necessary instances and
- * settings before enabling the plugin.
+ * This class initializes necessary components and manages
+ * the lifecycle events of the plugin such as enabling and disabling.
  */
 public final class Raidhelper extends JavaPlugin {
 
-    private RaidManager raidManager;  // RaidManager instance reference
-    private Config config;            // Holds configuration data
-    private Logger logger;            // Logger for logging information
+    private RaidManager raidManager;  // Manages active raids
+    private Config config;            // Holds plugin configuration settings
+    private Logger logger;            // Logger for reporting errors and information
 
     /**
-     * The logic executed when the plugin is enabled.
+     * Called when the plugin is enabled by the server.
+     * Initializes variables, loads configuration, and registers event listeners.
      */
     @Override
     public void onEnable() {
-        initializeVariables();
+        initializeComponents();
         registerListeners();
     }
 
     /**
-     * Initializes the necessary variables and components
-     * for the plugin.
+     * Initializes essential components such as the configuration,
+     * raid manager, raid monitor, and scheduler.
      */
-    private void initializeVariables() {
-        logger = getLogger();
-        saveDefaultConfig();
+    private void initializeComponents() {
+        initializeLogger();
+        initializeConfig();
+        initializeRaidManager();
 
-        // Load configuration settings
+        startRaidMonitor();
+        startRaidScheduler();
+    }
+
+    /**
+     * Initializes logger.
+     */
+    private void initializeLogger() {
+        logger = getLogger();
+    }
+
+    /**
+     * Initializes config.
+     */
+    private void initializeConfig() {
+        saveDefaultConfig();
         config = new Config(this, getConfig(), logger);
         config.loadValues();
+    }
 
-        // Initialize raid manager, scheduler, and monitor
+    /**
+     * Initializes Raid Manager.
+     */
+    private void initializeRaidManager() {
         raidManager = new RaidManager(this, config, logger);
+    }
 
+    /**
+     * Starts the raid monitoring system.
+     */
+    private void startRaidMonitor() {
         final RaidMonitor raidMonitor = new RaidMonitor(this, raidManager, config, logger);
         raidMonitor.startMonitor();
+    }
 
+    /**
+     * Starts the raid scheduling system.
+     */
+    private void startRaidScheduler() {
         final RaidScheduler raidScheduler = new RaidScheduler(this, raidManager, config, logger);
         raidScheduler.startScheduler();
     }
 
     /**
-     * Registers the necessary listeners.
+     * Registers all event listeners used by the plugin.
+     * This includes listeners for bell ring and raid finish events.
      */
     private void registerListeners() {
         final PluginManager pluginManager = getServer().getPluginManager();
 
-        // Initialize listeners
-        final BellRingEventListener bellRingEventListener = new BellRingEventListener
-                (this, raidManager, config, logger);
-        final RaidFinishEventListener raidFinishEventListener = new RaidFinishEventListener
-                (raidManager);
+        final BellListener bellListener = new BellListener(this, raidManager, config, logger);
+        final RaidEndListener raidEndListener = new RaidEndListener(raidManager);
 
-        // Register listeners
-        pluginManager.registerEvents(bellRingEventListener, this);
-        pluginManager.registerEvents(raidFinishEventListener, this);
+        pluginManager.registerEvents(bellListener, this);
+        pluginManager.registerEvents(raidEndListener, this);
     }
 
     /**
-     * The logic executed when the plugin is disabled.
+     * Called when the plugin is disabled by the server.
+     * Handles any cleanup or saving necessary before shutdown.
      */
     @Override
-    public void onDisable() {}
+    public void onDisable() {
+        // If there are tasks or resources that need to be cleaned up when the plugin shuts down,
+        // this is where you would add that logic.
+    }
 }

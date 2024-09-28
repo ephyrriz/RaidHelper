@@ -14,7 +14,7 @@ import org.bukkit.event.block.BellRingEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.main.RaidData;
 import ru.ephy.raidhelper.main.RaidManager;
-import ru.ephy.raidhelper.files.Config;
+import ru.ephy.raidhelper.config.Config;
 
 import java.util.Map;
 import java.util.logging.Logger;
@@ -24,7 +24,7 @@ import java.util.logging.Logger;
  * and teleports raiders based on the bell's location.
  */
 @RequiredArgsConstructor
-public class BellRingEventListener implements Listener {
+public class BellListener implements Listener {
 
     private final JavaPlugin plugin;        // Plugin instance reference
     private final RaidManager raidManager;  // RaidManager instance reference

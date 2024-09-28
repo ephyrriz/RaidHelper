@@ -24,5 +24,5 @@ public class RaidData {
     private int counter = 0;                      // Counter; is used to measure the time since the object was created.
 
     public void incrementCounter() { counter++; } // Increments the counter by 1.
-    public void resetCounter() { counter = 0; }   // Resets the counter.
+    public void resetCounter() { counter = 0; }   // Resets the counter to 0.
 }

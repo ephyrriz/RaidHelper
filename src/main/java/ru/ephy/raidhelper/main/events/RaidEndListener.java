@@ -14,7 +14,7 @@ import ru.ephy.raidhelper.main.RaidManager;
  * from the plugin's active raids list.
  */
 @RequiredArgsConstructor
-public class RaidFinishEventListener implements Listener {
+public class RaidEndListener implements Listener {
     private final RaidManager raidManager; // RaidManager instance reference
 
     /**
