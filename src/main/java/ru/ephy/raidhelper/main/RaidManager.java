@@ -2,6 +2,7 @@ package ru.ephy.raidhelper.main;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Location;
 import org.bukkit.Raid;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,7 +23,7 @@ public class RaidManager {
     private final JavaPlugin plugin;                                              // Plugin instance reference
     private final Config config;                                                  // Holds configuration data
     private final Logger logger;                                                  // Logger for logging information
-    private final Map<World, Map<Integer, RaidLogic>> raidMap = new HashMap<>();  // A list of raids and their data.
+    private final Map<World, Map<Integer, RaidData>> raidMap = new HashMap<>();  // A list of raids and their data.
 
     /**
      * Adds a raid to the map and starts its associated logic.
@@ -30,11 +31,12 @@ public class RaidManager {
      * @param raid The raid to be added.
      */
     public void addRaid(final Raid raid) {
-        final World world = raid.getLocation().getWorld();
+        final Location location = raid.getLocation();
+        final World world = location.getWorld();
         final int raidId = raid.getId();
-        final RaidLogic raidLogic = new RaidLogic(plugin, config, raid, world, logger);
+        final RaidData raidData = new RaidData(raid, location, world);
 
-        raidMap.computeIfAbsent(world, k -> new HashMap<>()).put(raidId, raidLogic);
+        raidMap.computeIfAbsent(world, k -> new HashMap<>()).put(raidId, raidData);
     }
 
     /**
@@ -65,7 +67,7 @@ public class RaidManager {
      * @return The RaidLogic associated with the raid, or null if not found.
      */
     @Nullable
-    public RaidLogic getRaidLogic(final Raid raid) {
+    public RaidData getRaidLogic(final Raid raid) {
         final World world = raid.getLocation().getWorld();
         final int raidId = raid.getId();
 
@@ -90,8 +92,8 @@ public class RaidManager {
 
         if (raidMap.containsKey(world)) {
             if (raidMap.get(world) != null) {
-                final RaidLogic raidLogic = raidMap.get(world).get(raidId);
-                return raidLogic != null;
+                final RaidData raidData = raidMap.get(world).get(raidId);
+                return raidData != null;
             }
         }
         return false;

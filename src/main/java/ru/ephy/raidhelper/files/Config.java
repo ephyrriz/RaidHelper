@@ -30,8 +30,8 @@ public class Config {
 
     private List<World> worldList;              // Worlds list.
     private String message;                     // Action bar message that is shown for players.
+    private double radiusSquared;               // The squared radius of the bell's effect.
     private int height;                         // How far above raiders will be teleported.
-    private int radius;                         // The radious of the bell's effect.
     private int cooldown;                       // After how many ticks will work.
     private int frequencyWorld;                 // How often check for the raids.
     private int frequencyRaid;                  // How often check the current time of the raid.
@@ -45,7 +45,7 @@ public class Config {
             // Main settings
             message = fileConfig.getString(MAIN_SETTINGS + ".message", "If you can't find the raiders, just ring a bell and they will spawn above it.");
             height = fileConfig.getInt(MAIN_SETTINGS + ".height", 10);
-            radius = fileConfig.getInt(MAIN_SETTINGS + ".radius", 50);
+            radiusSquared = Math.pow(fileConfig.getDouble(MAIN_SETTINGS + ".radius", 50), 2);
             cooldown = fileConfig.getInt(MAIN_SETTINGS + ".cooldown", 60);
             delay = fileConfig.getInt(MAIN_SETTINGS + ".delay", 60);
             // Advanced settings

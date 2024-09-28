@@ -5,6 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.main.RaidManager;
 import ru.ephy.raidhelper.files.Config;
 import ru.ephy.raidhelper.main.RaidMonitor;
+import ru.ephy.raidhelper.main.RaidScheduler;
 import ru.ephy.raidhelper.main.events.BellRingEventListener;
 import ru.ephy.raidhelper.main.events.RaidFinishEventListener;
 
@@ -42,10 +43,14 @@ public final class Raidhelper extends JavaPlugin {
         config = new Config(this, getConfig(), logger);
         config.loadValues();
 
-        // Initialize raid manager and scheduler
+        // Initialize raid manager, scheduler, and monitor
         raidManager = new RaidManager(this, config, logger);
+
         final RaidMonitor raidMonitor = new RaidMonitor(this, raidManager, config, logger);
-        raidMonitor.startScheduler();
+        raidMonitor.startMonitor();
+
+        final RaidScheduler raidScheduler = new RaidScheduler(this, raidManager, config, logger);
+        raidScheduler.startScheduler();
     }
 
     /**
@@ -56,7 +61,7 @@ public final class Raidhelper extends JavaPlugin {
 
         // Initialize listeners
         final BellRingEventListener bellRingEventListener = new BellRingEventListener
-                (this, raidManager, config);
+                (this, raidManager, config, logger);
         final RaidFinishEventListener raidFinishEventListener = new RaidFinishEventListener
                 (raidManager);
 

@@ -12,11 +12,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BellRingEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.ephy.raidhelper.main.RaidLogic;
+import ru.ephy.raidhelper.main.RaidData;
 import ru.ephy.raidhelper.main.RaidManager;
 import ru.ephy.raidhelper.files.Config;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * This class handles the events related to ringing a bell
@@ -28,6 +29,7 @@ public class BellRingEventListener implements Listener {
     private final JavaPlugin plugin;        // Plugin instance reference
     private final RaidManager raidManager;  // RaidManager instance reference
     private final Config config;            // Holds configuration data
+    private final Logger logger;            // Logger instance
 
     /**
      * Handles the BellRingEvent when a bell is rung.
@@ -37,8 +39,10 @@ public class BellRingEventListener implements Listener {
     @EventHandler
     public void on(final BellRingEvent event) {
         final Entity entity = event.getEntity();
+
         if (entity instanceof Player) {
             final Location bellLocation = event.getBlock().getLocation();
+
             if (isWorldValid(bellLocation)) {
                 handleRaidTeleport(bellLocation);
             }
@@ -61,15 +65,16 @@ public class BellRingEventListener implements Listener {
      * @param bellLocation the location of the bell
      */
     private void handleRaidTeleport(final Location bellLocation) {
-        for (final Map.Entry<World, Map<Integer, RaidLogic>> entry : raidManager.getRaidMap().entrySet()) {
-            final Map<Integer, RaidLogic> raidLogicMap = entry.getValue();
-            for (Map.Entry<Integer, RaidLogic> entry1 : raidLogicMap.entrySet()) {
-                final RaidLogic raidLogic = entry1.getValue();
-                final Raid raid = raidLogic.getRaid();
-                if (isRaidInRange(raid.getLocation(), bellLocation) && raidLogic.isRingable()) {
-                    teleportRaiders(raid, bellLocation);
-                }
-            }
+        final World world = bellLocation.getWorld();
+        final Map<World, Map<Integer, RaidData>> raidMap = raidManager.getRaidMap();
+
+        if (raidMap.containsKey(world)) {
+            final Map<Integer, RaidData> raidDataMap = raidMap.get(world);
+
+            raidDataMap.values().stream()
+                    .filter(RaidData::isRingable)
+                    .filter(raidData -> isRaidInRange(raidData.getLocation(), bellLocation))
+                    .forEach(raidData -> teleportRaiders(raidData.getRaid(), bellLocation));
         }
     }
 
@@ -81,7 +86,9 @@ public class BellRingEventListener implements Listener {
      * @return true if the raid is within range, false otherwise
      */
     private boolean isRaidInRange(final Location raidLocation, final Location bellLocation) {
-        return raidLocation.distance(bellLocation) <= config.getRadius();
+        logger.info("Returned squared distance for isRaidInRange: " + raidLocation.distanceSquared(bellLocation));
+        final double distanceSquared = raidLocation.distanceSquared(bellLocation);
+        return distanceSquared <= config.getRadiusSquared();
     }
 
     /**
@@ -91,11 +98,16 @@ public class BellRingEventListener implements Listener {
      * @param bellLocation the location to teleport to
      */
     private void teleportRaiders(final Raid raid, final Location bellLocation) {
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            final Location updatedLocation = bellLocation.clone().add(0, config.getHeight(), 0); // Adjust the Y coordinate for teleportation
-            for (final Raider raider : raid.getRaiders()) {
-                raider.teleport(updatedLocation);
-            }
-        }, config.getDelay());
+        try {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                final Location updatedLocation = bellLocation.clone().add(0, config.getHeight(), 0); // Adjust the Y coordinate for teleportation
+                for (final Raider raider : raid.getRaiders()) {
+                    raider.teleport(updatedLocation);
+                }
+            }, config.getDelay());
+        } catch (final Exception e) {
+            logger.severe("An error occured during teleporting raiders to the bell location: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

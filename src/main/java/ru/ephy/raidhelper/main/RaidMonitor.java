@@ -28,7 +28,7 @@ public class RaidMonitor {
      *
      * @throws IllegalArgumentException When an illegal argument was passed to the scheduler.
      */
-    public void startScheduler() throws IllegalArgumentException {
+    public void startMonitor() throws IllegalArgumentException {
         try {
             Bukkit.getScheduler().runTaskTimer(plugin, this::getActiveRaidsInWorlds, 0, config.getFrequencyWorld());
         } catch (final Exception e) {
