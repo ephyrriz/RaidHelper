@@ -1,17 +1,19 @@
-package ru.ephy.raidhelper.raids.events;
+package ru.ephy.raidhelper.main.events;
 
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Raid;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Raider;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BellRingEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.ephy.raidhelper.raids.RaidLogic;
-import ru.ephy.raidhelper.raids.RaidManager;
+import ru.ephy.raidhelper.main.RaidLogic;
+import ru.ephy.raidhelper.main.RaidManager;
 import ru.ephy.raidhelper.files.Config;
 
 import java.util.Map;
@@ -34,7 +36,8 @@ public class BellRingEventListener implements Listener {
      */
     @EventHandler
     public void on(final BellRingEvent event) {
-        if (event.getEntity() instanceof Player) {
+        final Entity entity = event.getEntity();
+        if (entity instanceof Player) {
             final Location bellLocation = event.getBlock().getLocation();
             if (isWorldValid(bellLocation)) {
                 handleRaidTeleport(bellLocation);
@@ -58,12 +61,14 @@ public class BellRingEventListener implements Listener {
      * @param bellLocation the location of the bell
      */
     private void handleRaidTeleport(final Location bellLocation) {
-        for (final Map.Entry<Integer, RaidLogic> entry : raidManager.getRaidMap().entrySet()) {
-            final RaidLogic raidLogic = entry.getValue();
-            final Raid raid = raidLogic.getRaid();
-
-            if (isRaidInRange(raid.getLocation(), bellLocation) && raidLogic.isBellActive()) {
-                teleportRaiders(raid, bellLocation);
+        for (final Map.Entry<World, Map<Integer, RaidLogic>> entry : raidManager.getRaidMap().entrySet()) {
+            final Map<Integer, RaidLogic> raidLogicMap = entry.getValue();
+            for (Map.Entry<Integer, RaidLogic> entry1 : raidLogicMap.entrySet()) {
+                final RaidLogic raidLogic = entry1.getValue();
+                final Raid raid = raidLogic.getRaid();
+                if (isRaidInRange(raid.getLocation(), bellLocation) && raidLogic.isRingable()) {
+                    teleportRaiders(raid, bellLocation);
+                }
             }
         }
     }

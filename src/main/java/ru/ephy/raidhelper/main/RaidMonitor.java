@@ -1,4 +1,4 @@
-package ru.ephy.raidhelper.raids;
+package ru.ephy.raidhelper.main;
 
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
@@ -15,18 +15,18 @@ import java.util.logging.Logger;
  * If a raid is new, it is added to the map.
  */
 @RequiredArgsConstructor
-public class RaidScheduler {
+public class RaidMonitor {
 
     private final JavaPlugin plugin;        // Plugin instance reference
-    private final RaidManager raidManager;  // Manages raids and their data
-    private final Config config;            // Holds configuration data
+    private final RaidManager raidManager;  // RaidManager instance
+    private final Config config;            // Config instance
     private final Logger logger;            // Logger for logging information
 
     /**
      * Starts the raid scheduler to periodically
      * check for active raids.
      *
-     * @throws IllegalArgumentException throws in case if an inappropriate argument was passed
+     * @throws IllegalArgumentException When an illegal argument was passed to the scheduler.
      */
     public void startScheduler() throws IllegalArgumentException {
         try {

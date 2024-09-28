@@ -1,4 +1,4 @@
-package ru.ephy.raidhelper.raids.events;
+package ru.ephy.raidhelper.main.events;
 
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Raid;
@@ -6,7 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.raid.RaidFinishEvent;
 import org.bukkit.event.raid.RaidStopEvent;
-import ru.ephy.raidhelper.raids.RaidManager;
+import ru.ephy.raidhelper.main.RaidManager;
 
 /**
  * This class handles the events related to finishing
