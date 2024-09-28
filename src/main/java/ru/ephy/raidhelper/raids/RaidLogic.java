@@ -39,6 +39,9 @@ public class RaidLogic {
         try {
             counterTaskId = Bukkit.getScheduler().runTaskTimer(
                     plugin, () -> {
+                        if (!isRaidersRemaining()) {
+                            resetRaidCounter();
+                        }
                         updateRaidCounter();
                         notifyPlayers();
                     }, 0, 20).getTaskId();
@@ -62,6 +65,13 @@ public class RaidLogic {
     }
 
     /**
+     * Checks for remaining raiders of the raid.
+     */
+    private boolean isRaidersRemaining() {
+        return !raid.getRaiders().isEmpty();
+    }
+
+    /**
      * Sends an action bar message to players within the raid's radius when the bell is ready.
      */
     private void notifyPlayers() {
@@ -75,10 +85,9 @@ public class RaidLogic {
     /**
      * Resets the raid counter and marks the bell as inactive.
      */
-    public void resetRaidCounter() {
+    private void resetRaidCounter() {
         raidCounter = 0;
         isBellActive = false;
-        logger.warning("E: Was reset. raidCounter: " + raidCounter + ". isBell: " + isBellActive);
     }
 
     /**
@@ -86,11 +95,11 @@ public class RaidLogic {
      */
     public void stopRaidCounter() {
         if (counterTaskId != -1) {
-            logger.warning("F: Condition did pass for stopCounter. Raid: " + raid + ". taskId: " + counterTaskId);
+            logger.warning("stopRaidCounter: Condition has passed for stopCounter. Raid: " + raid.getId() + ". taskId: " + counterTaskId);
             Bukkit.getScheduler().cancelTask(counterTaskId);
             counterTaskId = -1;
             return;
         }
-        logger.warning("G: Condition didn't pass for stopCounter. Raid: " + raid + ". taskId: " + counterTaskId);
+        logger.warning("stopRaidCounter: Condition hasn't passed for stopCounter. Raid: " + raid.getId() + ". taskId: " + counterTaskId);
     }
 }

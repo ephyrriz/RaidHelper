@@ -7,7 +7,6 @@ import ru.ephy.raidhelper.files.Config;
 import ru.ephy.raidhelper.raids.RaidScheduler;
 import ru.ephy.raidhelper.raids.events.BellRingEventListener;
 import ru.ephy.raidhelper.raids.events.RaidFinishEventListener;
-import ru.ephy.raidhelper.raids.events.RaidSpawnWaveEventListener;
 
 import java.util.logging.Logger;
 
@@ -17,6 +16,7 @@ import java.util.logging.Logger;
  * settings before enabling the plugin.
  */
 public final class Raidhelper extends JavaPlugin {
+
     private RaidManager raidManager;  // RaidManager instance reference
     private Config config;            // Holds configuration data
     private Logger logger;            // Logger for logging information
@@ -28,7 +28,6 @@ public final class Raidhelper extends JavaPlugin {
     public void onEnable() {
         initializeVariables();
         registerListeners();
-        logger.info("Plugin enabled.");
     }
 
     /**
@@ -59,21 +58,16 @@ public final class Raidhelper extends JavaPlugin {
         final BellRingEventListener bellRingEventListener = new BellRingEventListener
                 (this, raidManager, config);
         final RaidFinishEventListener raidFinishEventListener = new RaidFinishEventListener
-                (raidManager, logger);
-        final RaidSpawnWaveEventListener raidSpawnWaveEventListener = new RaidSpawnWaveEventListener
                 (raidManager);
 
         // Register listeners
         pluginManager.registerEvents(bellRingEventListener, this);
         pluginManager.registerEvents(raidFinishEventListener, this);
-        pluginManager.registerEvents(raidSpawnWaveEventListener, this);
     }
 
     /**
      * The logic executed when the plugin is disabled.
      */
     @Override
-    public void onDisable() {
-        logger.info("Plugin disabled.");
-    }
+    public void onDisable() {}
 }

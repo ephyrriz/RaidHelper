@@ -58,9 +58,11 @@ public class BellRingEventListener implements Listener {
      * @param bellLocation the location of the bell
      */
     private void handleRaidTeleport(final Location bellLocation) {
-        for (final Map.Entry<Raid, RaidLogic> entry : raidManager.getRaidMap().entrySet()) {
-            final Raid raid = entry.getKey();
-            if (isRaidInRange(bellLocation, raid) && entry.getValue().isBellActive()) {
+        for (final Map.Entry<Integer, RaidLogic> entry : raidManager.getRaidMap().entrySet()) {
+            final RaidLogic raidLogic = entry.getValue();
+            final Raid raid = raidLogic.getRaid();
+
+            if (isRaidInRange(raid.getLocation(), bellLocation) && raidLogic.isBellActive()) {
                 teleportRaiders(raid, bellLocation);
             }
         }
@@ -70,12 +72,11 @@ public class BellRingEventListener implements Listener {
      * Checks if the raid is within the teleportation radius.
      *
      * @param bellLocation the location of the bell
-     * @param raid the raid to check
+     * @param raidLocation the location of the raid
      * @return true if the raid is within range, false otherwise
      */
-    private boolean isRaidInRange(final Location bellLocation, final Raid raid) {
-        final int radiusSquared = config.getRadius() * config.getRadius();
-        return bellLocation.distanceSquared(raid.getLocation()) <= radiusSquared;
+    private boolean isRaidInRange(final Location raidLocation, final Location bellLocation) {
+        return raidLocation.distance(bellLocation) <= config.getRadius();
     }
 
     /**

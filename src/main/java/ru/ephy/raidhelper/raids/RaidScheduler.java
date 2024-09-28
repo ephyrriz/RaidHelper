@@ -17,10 +17,10 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public class RaidScheduler {
 
-    private final JavaPlugin plugin;          // Plugin instance reference
-    private final RaidManager raidManager;    // Manages raids and their data
-    private final Config config;              // Holds configuration data
-    private final Logger logger;              // Logger for logging information
+    private final JavaPlugin plugin;        // Plugin instance reference
+    private final RaidManager raidManager;  // Manages raids and their data
+    private final Config config;            // Holds configuration data
+    private final Logger logger;            // Logger for logging information
 
     /**
      * Starts the raid scheduler to periodically
@@ -34,9 +34,7 @@ public class RaidScheduler {
         } catch (final Exception e) {
             logger.severe("An error occured during starting the scheduler: " + e.getMessage());
             e.printStackTrace();
-            return;
         }
-        logger.info("RaidScheduler started successfully.");
     }
 
     /**
@@ -52,10 +50,10 @@ public class RaidScheduler {
     }
 
     /**
-     * Analyzes a raid; if it is not already in the raid data map,
-     * it will be added. Otherwise, it is ignored.
+     * Adds a raid to the map; if it is not already in the raid
+     * data map, it will be added. Otherwise, it is ignored.
      *
-     * @param raid The raid to be analyzed.
+     * @param raid The raid to be added.
      */
     private void addRaidToMap(final Raid raid) {
         // If the raid is not already in the map, add it with its data

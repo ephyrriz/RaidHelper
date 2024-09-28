@@ -7,8 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 import ru.ephy.raidhelper.files.Config;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -19,10 +18,10 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public class RaidManager {
 
-    private final JavaPlugin plugin;                                // Plugin instance reference
-    private final Config config;                                    // Holds configuration data
-    private final Logger logger;                                    // Logger for logging information
-    private final Map<Raid, RaidLogic> raidMap = new HashMap<>();   // A hashmap of raids and their data.
+    private final JavaPlugin plugin;                                  // Plugin instance reference
+    private final Config config;                                      // Holds configuration data
+    private final Logger logger;                                      // Logger for logging information
+    private final Map<Integer, RaidLogic> raidMap = new HashMap<>();  // A list of raids and their data.
 
     /**
      * Adds a raid to the map and starts its associated logic.
@@ -32,7 +31,7 @@ public class RaidManager {
     public void addRaid(final Raid raid) {
         final RaidLogic raidLogic = new RaidLogic(plugin, config, raid, logger);
         raidLogic.startRaidCounter();
-        raidMap.put(raid, raidLogic);
+        raidMap.put(raid.getId(), raidLogic);
     }
 
     /**
@@ -41,15 +40,8 @@ public class RaidManager {
      * @param raid The raid to be removed.
      */
     public void removeRaid(final Raid raid) {
-        logger.warning("H: removeFiredd. Raid: " + raid);
-        final RaidLogic raidLogic = getRaidLogic(raid);
-        if (raidLogic != null) {
-            logger.warning("I: Yes pass: raid: " + raid + ". RaidLogic: " + raidLogic);
-            raidLogic.stopRaidCounter();
-            raidMap.remove(raid);
-            return;
-        }
-        logger.warning("I: No pass: raid: " + raid);
+        raidMap.get(raid.getId()).stopRaidCounter();
+        raidMap.remove(raid.getId());
     }
 
     /**
@@ -61,9 +53,8 @@ public class RaidManager {
      */
     @Nullable
     public RaidLogic getRaidLogic(final Raid raid) {
-        final RaidLogic raidLogic = raidMap.get(raid);
-        if (raidLogic != null) {
-            return raidMap.get(raid);
+        if (raidMap.containsKey(raid.getId())) {
+            return raidMap.get(raid.getId());
         }
         return null;
     }
@@ -75,6 +66,7 @@ public class RaidManager {
      * @return True if the raid is in the map, false otherwise.
      */
     public boolean isRaidInMap(final Raid raid) {
-        return raidMap.containsKey(raid);
+        logger.info("IsRaidInMap: " + raidMap.containsKey(raid.getId()));
+        return raidMap.containsKey(raid.getId());
     }
 }
