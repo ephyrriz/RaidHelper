@@ -8,29 +8,40 @@ import org.bukkit.Location;
 import org.bukkit.Raid;
 import org.bukkit.World;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
- * Represents data related to a specific raid event, storing
- * its location, world, and whether raiders can be teleported
- * when the bell rings. Also tracks the time elapsed via a counter.
+ * Holds data related to a specific raid, including the raid's location,
+ * the world it takes place in, and settings related to raider behavior
+ * (e.g., teleportation when the bell rings). This class also tracks time
+ * via a counter, which can be reset or incremented.
  */
 @Getter
 @NonNull
 @RequiredArgsConstructor
 public class RaidData {
-    private final Raid raid;                      // Associated Raid instance
-    private final Location location;              // Location of the raid
-    private final World world;                    // World where the raid is taking place
+
+    private final Raid raid;                 // The associated Raid instance
+    private final Location location;         // The location where the raid is occurring
+    private final World world;               // The world in which the raid is taking place
 
     @Setter
-    private boolean ringable = false;             // If true, raiders can teleport on bell ring
+    private boolean ringable = false;        // Determines if raiders can teleport when the bell rings
     @Setter
-    private boolean reset = false;                // If true, doesn't let the resetCounter method be applied
-    private int counter = 0;                      // Tracks the time since the object was created
+    private boolean canResetCounter = false; // If true, prevents the counter from being reset
+    private int counter = 0;                 // Tracks time (in ticks) since the raid was initialized or reset
 
-    public void incrementCounter() { counter++; } // Increments the counter by 1.
-    public void resetCounter() { counter = 0; }   // Resets the counter to 0.
+    /**
+     * Increments the counter by 1.
+     */
+    public void incrementCounter() {
+        counter++;
+    }
+
+    /**
+     * Resets the counter to 0.
+     */
+    public void resetCounter() {
+        counter = 0;
+    }
 
     /**
      * For debug purposes only.
@@ -43,8 +54,8 @@ public class RaidData {
                 "raidId=" + raid.getId() +
                 ", location=" + location +
                 ", world=" + world +
-                ", isRingable=" + ringable +
-                ", isReset=" + reset +
+                ", ringable=" + ringable +
+                ", reset=" + canResetCounter +
                 ", counter=" + counter +
                 '}';
     }

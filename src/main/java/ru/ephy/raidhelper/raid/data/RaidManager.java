@@ -5,66 +5,65 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Raid;
 import org.bukkit.World;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import ru.ephy.raidhelper.MayBeRemoved;
-import ru.ephy.raidhelper.config.Config;
 
 import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * Manages all active raids and their associated logic.
- * Responsible for adding, removing, and retrieving RaidData instances.
+ * Manages all active raids across different worlds, handling their addition, removal,
+ * and retrieval of associated RaidData instances.
+ * <p>
+ * This class optimizes raid handling to avoid redundant operations and ensure
+ * raids are properly cleaned up when no longer needed.
  */
-@Getter
 @RequiredArgsConstructor
 public class RaidManager {
-
-    private final JavaPlugin plugin;                                                      // Plugin's instance
-    private final Config config;                                                          // Holds plugin configuration settings
-    private final Logger logger;                                                          // Logger for debugging
+    @Getter
     private final Map<World, Map<Integer, RaidData>> worldRaidMap = new WeakHashMap<>();  // A map of worlds to their active raiding data
+    private final Logger logger;                                                          // Logger for debugging
 
     /**
-     * Adds a raid to the map and starts its associated logic.
+     * Adds a raid if it's not already present in the map and starts any associated logic.
+     * If the raid is new, it will be logged and added to the active raids map for tracking.
      *
-     * @param raid The Raid instance to be added.
+     * @param raid The Raid instance to be registered.
      */
     public void addRaidIfAbsent(final Raid raid) {
-        final Location location = raid.getLocation();
-        final World world = location.getWorld();
+        final Location raidLocation = raid.getLocation();
+        final World raidWorld = raidLocation.getWorld();
         final int raidId = raid.getId();
 
-        worldRaidMap.computeIfAbsent(world, w -> new HashMap<>())
-                .computeIfAbsent(raidId, id -> {
-                    logger.info("Raid added. RaidId: " + raidId + " | RaidLocation: " + location);
-                    return new RaidData(raid, location, world);
-                });
+        worldRaidMap.computeIfAbsent(raidWorld, w -> new HashMap<>())
+                    .computeIfAbsent(raidId, id -> {
+                        logger.info("Raid added. RaidId: " + raidId + " | RaidLocation: " + raidLocation);
+                        return new RaidData(raid, raidLocation, raidWorld);
+                    });
     }
 
     /**
-     * Removes a raid from the map and stops its associated logic.
-     * if no active raids left in the world, it gets removed too.
+     * Removes the raid from the map. If no other raids exist
+     * in the world, the world itself is also removed from the map.
      *
-     * @param raid The raid to be removed.
+     * @param raid The Raid instance to be unregistered.
      */
     public void removeRaidIfPresent(final Raid raid) {
-        final World currentWorld = raid.getLocation().getWorld();
+        final World raidWorld = raid.getLocation().getWorld();
         final int raidId = raid.getId();
 
-        worldRaidMap.computeIfPresent(currentWorld, (world, raidDataMap) -> {
+        worldRaidMap.computeIfPresent(raidWorld, (world, raidDataMap) -> {
             raidDataMap.remove(raidId);
-            return raidDataMap.isEmpty() ? null : raidDataMap;
+            logger.info("Raid removed. RaidId: " + raidId + " | Location: " + raid.getLocation());
+            return raidDataMap.isEmpty() ? null : raidDataMap; // Clean up empty worlds
         });
     }
 
     /**
-     * Retrieves the RaidData instance associated with the given raid.
-     * Returns an Optional containing the RaidData if present, or an empty Optional if not found.
+     * Retrieves the RaidData associated with a given raid.
      *
-     * @param raid The Raid instance whose data is being retrieved.
-     * @return An Optional containing the RaidData associated with the raid, or empty if not found.
+     * @param raid The Raid instance for which data is requested.
+     * @return An Optional containing the RaidData, or empty if no data is found.
      */
     @NotNull
     @MayBeRemoved
@@ -77,10 +76,10 @@ public class RaidManager {
     }
 
     /**
-     * Checks if a raid is already registered in the map.
+     * Checks whether a given raid is currently registered in the map.
      *
-     * @param raid The Raid instance to check.
-     * @return True if the raid is in the map, false otherwise.
+     * @param raid The Raid instance to check for.
+     * @return True if the raid is registered, false otherwise.
      */
     public boolean isRaidInMap(final Raid raid) {
         final World world = raid.getLocation().getWorld();

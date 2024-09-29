@@ -70,8 +70,8 @@ public class RaidStateManager {
      * @param raidData The RaidData instance to update when the wave ends.
      */
     private void handleWaveEnd(final RaidData raidData) {
-        if (!raidData.isReset()) { // Checks if the flag is already false; protects from multiple calls.
-            raidData.setReset(true);
+        if (!raidData.isCanResetCounter()) { // Checks if the flag is already false; protects from multiple calls.
+            raidData.setCanResetCounter(true);
             raidData.setRingable(false);
             raidData.resetCounter();
         }
@@ -84,7 +84,7 @@ public class RaidStateManager {
      * @param raidData The RaidData instance to update during the ongoing wave.
      */
     private void handleOngoingWave(final RaidData raidData) {
-        raidData.setReset(false); // Reset flag indicating the wave is ongoing.
+        raidData.setCanResetCounter(false); // Reset flag indicating the wave is ongoing.
 
         if (raidData.getCounter() > cooldownTicks) {  // Check if cooldown is exceeded.
             handleRingableState(raidData);
