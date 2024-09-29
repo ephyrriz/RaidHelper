@@ -3,11 +3,12 @@ package ru.ephy.raidhelper.raid.manager;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.Raid;
+import org.bukkit.entity.Raider;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidData;
 
-import java.util.logging.Logger;
+import java.util.List;
 
 /**
  * Manages scheduled checks for active raids across all worlds.
@@ -19,7 +20,6 @@ public class RaidScheduler {
     private final JavaPlugin plugin;        // Plugin's instance
     private final RaidManager raidManager;  // Manages active raids
     private final Config config;            // Holds plugin configuration settings
-    private final Logger logger;            // Logger for reporting errors and information
 
     private int cooldownTicks;              // Cooldown duration (from config); sets when isRingable can be true
 
@@ -30,12 +30,7 @@ public class RaidScheduler {
      */
     public void startScheduler() throws IllegalArgumentException {
         initializeCooldown();
-        try {
-            Bukkit.getScheduler().runTaskTimer(
-                    plugin, this::checkActiveRaids, 0, config.getFrequencyRaid());
-        } catch (final IllegalArgumentException e) {
-            logger.severe("Error enabling RaidScheduler: " + e.getMessage());
-        }
+        Bukkit.getScheduler().runTaskTimer(plugin, this::checkActiveRaids, 0, config.getFrequencyRaid());
     }
 
     /**
@@ -49,8 +44,8 @@ public class RaidScheduler {
      * Checks the status of active raids.
      */
     private void checkActiveRaids() {
-        raidManager.getRaidMap().forEach((world, idRaidDataMap) ->
-                idRaidDataMap.forEach((id, raidData) -> updateRaidState(raidData)));
+        raidManager.getWorldRaidMap().forEach((world, idRaidDataMap) ->
+                idRaidDataMap.forEach((raidId, raidData) -> updateRaidState(raidData)));
     }
 
     /**
@@ -63,14 +58,35 @@ public class RaidScheduler {
         raidData.incrementCounter();
 
         if (!raidData.isRingable()) {
-            if (raidData.getCounter() > cooldownTicks) {
-                raidData.setRingable(true);
-            }
+            handleRingableState(raidData);
         } else {
-            if (shouldBeReset(raidData.getRaid())) {
-                raidData.setRingable(false);
-                raidData.resetCounter();
-            }
+            handleNotRingableState(raidData);
+        }
+    }
+
+    /**
+     * Handles the logic for when the raid data is ringable.
+     *
+     * @param raidData The RaidData instance to update.
+     */
+    private void handleRingableState(final RaidData raidData) {
+        if (shouldBeReset(raidData.getRaid()) && !raidData.isReset()) {
+            raidData.setReset(true);
+            raidData.setRingable(false);
+            raidData.resetCounter();
+        } else if (!shouldBeReset(raidData.getRaid()) && raidData.isReset()) {
+            raidData.setReset(false);
+        }
+    }
+
+    /**
+     * Handles the logic for when the raid data is not ringable.
+     *
+     * @param raidData The RaidData instance to update.
+     */
+    private void handleNotRingableState(final RaidData raidData) {
+        if (raidData.getCounter() > cooldownTicks) {
+            raidData.setRingable(true);
         }
     }
 
@@ -81,6 +97,7 @@ public class RaidScheduler {
      * @return True if all raiders are dead, otherwise false.
      */
     private boolean shouldBeReset(final Raid raid) {
-        return raid.getRaiders().isEmpty();
+        final List<Raider> raiderList = raid.getRaiders();
+        return raiderList.isEmpty();
     }
 }

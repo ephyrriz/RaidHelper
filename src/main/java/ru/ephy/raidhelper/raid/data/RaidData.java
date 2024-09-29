@@ -1,6 +1,7 @@
 package ru.ephy.raidhelper.raid.data;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -8,20 +9,23 @@ import org.bukkit.Raid;
 import org.bukkit.World;
 
 /**
- * Manages logic related to a specific raid event.
- * It handles the scheduling of tasks, updating a timer,
- * and interacting with raid-related events like the bell.
+ * Represents data related to a specific raid event, storing
+ * its location, world, and whether raiders can be teleported
+ * when the bell rings. Also tracks the time elapsed via a counter.
  */
 @Getter
+@NonNull
 @RequiredArgsConstructor
 public class RaidData {
-    private final Raid raid;                      // Raid instance
-    private final Location location;              // Location instance
-    private final World world;                    // World instance
+    private final Raid raid;                      // Associated Raid instance
+    private final Location location;              // Location of the raid
+    private final World world;                    // World where the raid is taking place
 
     @Setter
-    private boolean isRingable = false;           // If true, ring in a bell will teleport raiders; if false, no logic.
-    private int counter = 0;                      // Counter; is used to measure the time since the object was created.
+    private boolean ringable = false;             // If true, raiders can teleport on bell ring
+    @Setter
+    private boolean reset = false;
+    private int counter = 0;                      // Tracks the time since the object was created
 
     public void incrementCounter() { counter++; } // Increments the counter by 1.
     public void resetCounter() { counter = 0; }   // Resets the counter to 0.

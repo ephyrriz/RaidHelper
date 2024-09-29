@@ -8,8 +8,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.manager.RaidManager;
 
-import java.util.logging.Logger;
-
 /**
  * This class is responsible for scheduled checks of
  * the active raids in the configured worlds.
@@ -21,21 +19,15 @@ public class RaidMonitor {
     private final JavaPlugin plugin;        // Plugin instance reference
     private final RaidManager raidManager;  // RaidManager instance
     private final Config config;            // Config instance
-    private final Logger logger;            // Logger for logging information
 
     /**
      * Starts the raid scheduler to periodically
      * check for active raids.
      *
-     * @throws IllegalArgumentException When an illegal argument was passed to the scheduler.
+     * @throws IllegalArgumentException If an illegal argument was passed during the scheduling process.
      */
     public void startMonitor() throws IllegalArgumentException {
-        try {
-            Bukkit.getScheduler().runTaskTimer(plugin, this::getActiveRaidsInWorlds, 0, config.getFrequencyWorld());
-        } catch (final Exception e) {
-            logger.severe("An error occured during starting the scheduler: " + e.getMessage());
-            e.printStackTrace();
-        }
+        Bukkit.getScheduler().runTaskTimer(plugin, this::getActiveRaidsInWorlds, 0, config.getFrequencyWorld());
     }
 
     /**

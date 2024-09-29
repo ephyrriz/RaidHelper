@@ -9,37 +9,43 @@ import org.bukkit.event.raid.RaidStopEvent;
 import ru.ephy.raidhelper.raid.manager.RaidManager;
 
 /**
- * This class handles the events related to finishing
- * the raid. When it finishes or stops, it gets removed
- * from the plugin's active raids list.
+ * Handles events related to raid completion or termination.
+ * When a raid finishes or stops, it is removed from the plugin's active raid list.
  */
 @RequiredArgsConstructor
 public class RaidEndListener implements Listener {
-    private final RaidManager raidManager; // RaidManager instance reference
+    private final RaidManager raidManager; // Manages active raids
 
     /**
-     * Listens to raid finish event; removes
-     * the raid if it was in the active raids map.
+     * Listens for the RaidFinishEvent and handles the raid's completion.
      *
-     * @param event the RaidFinishEvent
+     * @param event The RaidFinishEvent.
      */
     @EventHandler
     public void on(final RaidFinishEvent event) {
         final Raid raid = event.getRaid();
-        if (raidManager.isRaidInMap(raid)) {
-            raidManager.removeRaid(raid);
-        }
+        removeRaid(raid);
     }
 
     /**
-     * Listens to raid stop event; removes
-     * the raid if it was in the active raids map.
+     * Listens for the RaidStopEvent and handles the raid's termination.
      *
-     * @param event the RaidStopEvent
+     * @param event The RaidStopEvent.
      */
     @EventHandler
     public void on(final RaidStopEvent event) {
         final Raid raid = event.getRaid();
+        removeRaid(raid);
+    }
+
+
+    /**
+     * Handles both RaidFinishEvent and RaidStopEvent.
+     * Removes the raid from the active raid map if it exists.
+     *
+     * @param raid The raid instance to be removed.
+     */
+    private void removeRaid(final Raid raid) {
         if (raidManager.isRaidInMap(raid)) {
             raidManager.removeRaid(raid);
         }

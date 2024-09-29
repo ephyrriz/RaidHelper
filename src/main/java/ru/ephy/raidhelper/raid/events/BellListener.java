@@ -20,19 +20,30 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * This class handles the events related to ringing a bell
- * and teleports raiders based on the bell's location.
+ * Handles the BellRingEvent and teleports raiders
+ * to the bell's location if certain conditions are met.
  */
 @RequiredArgsConstructor
 public class BellListener implements Listener {
 
-    private final JavaPlugin plugin;        // Plugin instance reference
-    private final RaidManager raidManager;  // RaidManager instance reference
-    private final Config config;            // Holds configuration data
-    private final Logger logger;            // Logger instance
+    private final JavaPlugin plugin;       // Plugin's instance
+    private final RaidManager raidManager; // Manages active raids
+    private final Config config;           // Holds plugin configuration settings
+    private final Logger logger;           // Logger for debugging
+
+    private double radiusSquared;
+    private int height;
+    private int delay;
+
+    public void initializeVariables() {
+        radiusSquared = config.getRadiusSquared();
+        height = config.getHeight();
+        delay = config.getDelay();
+    }
 
     /**
      * Handles the BellRingEvent when a bell is rung.
+     * Only considers valid worlds and player interactions.
      *
      * @param event the BellRingEvent
      */
@@ -41,73 +52,78 @@ public class BellListener implements Listener {
         final Entity entity = event.getEntity();
 
         if (entity instanceof Player) {
-            final Location bellLocation = event.getBlock().getLocation();
+            final Location location = event.getBlock().getLocation();
+            final World world = location.getWorld();
 
-            if (isWorldValid(bellLocation)) {
-                handleRaidTeleport(bellLocation);
+            if (isValidWorld(world)) {
+                teleportRaidersNearBell(world, location);
             }
         }
     }
 
     /**
-     * Checks if the world of the given location is in the configured world list.
+     * Checks if the given world is part of the valid worlds in the config.
      *
-     * @param bellLocation the location of the bell
+     * @param world the world to check
      * @return true if the world is valid, false otherwise
      */
-    private boolean isWorldValid(final Location bellLocation) {
-        return config.getWorldList().contains(bellLocation.getWorld());
+    private boolean isValidWorld(final World world) {
+        return config.getWorldList().contains(world);
     }
 
     /**
-     * Handles the teleportation of raiders based on the bell's location.
+     * Teleports raiders near the bell to the bell's location.
+     * It looks for active raids and verifies if they are within range.
      *
-     * @param bellLocation the location of the bell
+     * @param world    the world of the bell.
+     * @param location the location of the bell.
      */
-    private void handleRaidTeleport(final Location bellLocation) {
-        final World world = bellLocation.getWorld();
-        final Map<World, Map<Integer, RaidData>> raidMap = raidManager.getRaidMap();
+    private void teleportRaidersNearBell(final World world, final Location location) {
+        final Map<Integer, RaidData> raidDataMap = raidManager.getWorldRaidMap().get(world);
 
-        if (raidMap.containsKey(world)) {
-            final Map<Integer, RaidData> raidDataMap = raidMap.get(world);
-
+        if (raidDataMap != null) {
             raidDataMap.values().stream()
                     .filter(RaidData::isRingable)
-                    .filter(raidData -> isRaidInRange(raidData.getLocation(), bellLocation))
-                    .forEach(raidData -> teleportRaiders(raidData.getRaid(), bellLocation));
+                    .filter(raidData -> isWithinRange(raidData.getLocation(), location))
+                    .forEach(raidData -> scheduleRaiderTeleport(raidData.getRaid(), location));
         }
     }
 
     /**
-     * Checks if the raid is within the teleportation radius.
+     * Checks if the raid's location is within the teleport range of the bell.
      *
-     * @param bellLocation the location of the bell
      * @param raidLocation the location of the raid
-     * @return true if the raid is within range, false otherwise
+     * @param bellLocation the location of the bell
+     * @return true if the raid is within the teleport range, false otherwise
      */
-    private boolean isRaidInRange(final Location raidLocation, final Location bellLocation) {
-        logger.info("Returned squared distance for isRaidInRange: " + raidLocation.distanceSquared(bellLocation));
+    private boolean isWithinRange(final Location raidLocation, final Location bellLocation) {
         final double distanceSquared = raidLocation.distanceSquared(bellLocation);
-        return distanceSquared <= config.getRadiusSquared();
+        logger.info("Returned squared distance for isRaidInRange: " + distanceSquared);
+        return distanceSquared <= radiusSquared;
     }
 
     /**
-     * Teleports raiders to the specified location after a delay.
+     * Schedules a delayed task to teleport all raiders in the raid to the bell's location.
      *
-     * @param raid the raid whose raiders are to be teleported
+     * @param raid the raid whose raiders will be teleported
      * @param bellLocation the location to teleport to
+     *
+     * @throws IllegalArgumentException If an illegal argument was passed during the scheduling process.
      */
-    private void teleportRaiders(final Raid raid, final Location bellLocation) {
-        try {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                final Location updatedLocation = bellLocation.clone().add(0, config.getHeight(), 0); // Adjust the Y coordinate for teleportation
-                for (final Raider raider : raid.getRaiders()) {
-                    raider.teleport(updatedLocation);
-                }
-            }, config.getDelay());
-        } catch (final Exception e) {
-            logger.severe("An error occured during teleporting raiders to the bell location: " + e.getMessage());
-            e.printStackTrace();
-        }
+    private void scheduleRaiderTeleport(final Raid raid, final Location bellLocation) throws IllegalArgumentException {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            final Location targetLocation = bellLocation.clone().add(0, height, 0); // Adjust the Y coordinate for teleportation
+            raid.getRaiders().forEach(raider -> teleportRaider(raider, targetLocation));
+        }, delay);
+    }
+
+    /**
+     * Safely teleports a raider to the target location.
+     *
+     * @param raider the raider entity to teleport
+     * @param targetLocation the location to teleport the raider to
+     */
+    private void teleportRaider(final Raider raider, final Location targetLocation) {
+        raider.teleport(targetLocation);
     }
 }

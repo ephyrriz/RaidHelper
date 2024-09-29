@@ -20,7 +20,7 @@ public final class Raidhelper extends JavaPlugin {
 
     private RaidManager raidManager;  // Manages active raids
     private Config config;            // Holds plugin configuration settings
-    private Logger logger;            // Logger for reporting errors and information
+    private Logger logger;            // Logger for debugging
 
     /**
      * Called when the plugin is enabled by the server.
@@ -72,7 +72,7 @@ public final class Raidhelper extends JavaPlugin {
      * Starts the raid monitoring system.
      */
     private void startRaidMonitor() {
-        final RaidMonitor raidMonitor = new RaidMonitor(this, raidManager, config, logger);
+        final RaidMonitor raidMonitor = new RaidMonitor(this, raidManager, config);
         raidMonitor.startMonitor();
     }
 
@@ -80,7 +80,7 @@ public final class Raidhelper extends JavaPlugin {
      * Starts the raid scheduling system.
      */
     private void startRaidScheduler() {
-        final RaidScheduler raidScheduler = new RaidScheduler(this, raidManager, config, logger);
+        final RaidScheduler raidScheduler = new RaidScheduler(this, raidManager, config);
         raidScheduler.startScheduler();
     }
 
@@ -92,6 +92,7 @@ public final class Raidhelper extends JavaPlugin {
         final PluginManager pluginManager = getServer().getPluginManager();
 
         final BellListener bellListener = new BellListener(this, raidManager, config, logger);
+        bellListener.initializeVariables();
         final RaidEndListener raidEndListener = new RaidEndListener(raidManager);
 
         pluginManager.registerEvents(bellListener, this);

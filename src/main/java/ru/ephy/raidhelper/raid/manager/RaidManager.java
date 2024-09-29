@@ -22,10 +22,10 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public class RaidManager {
 
-    private final JavaPlugin plugin;                                              // Plugin's instance
-    private final Config config;                                                  // Holds plugin configuration settings
-    private final Logger logger;                                                  // Logger for reporting errors and information
-    private final Map<World, Map<Integer, RaidData>> raidMap = new HashMap<>();   // A map of worlds to their active raiding data
+    private final JavaPlugin plugin;                                                   // Plugin's instance
+    private final Config config;                                                       // Holds plugin configuration settings
+    private final Logger logger;                                                       // Logger for debugging
+    private final Map<World, Map<Integer, RaidData>> worldRaidMap = new HashMap<>();   // A map of worlds to their active raiding data
 
     /**
      * Adds a raid to the map and starts its associated logic.
@@ -38,7 +38,7 @@ public class RaidManager {
         final int raidId = raid.getId();
         final RaidData raidData = new RaidData(raid, location, world);
 
-        raidMap.computeIfAbsent(world, k -> new HashMap<>()).put(raidId, raidData);
+        worldRaidMap.computeIfAbsent(world, w -> new HashMap<>()).put(raidId, raidData);
     }
 
     /**
@@ -51,7 +51,7 @@ public class RaidManager {
         final World currentWorld = raid.getLocation().getWorld();
         final int raidId = raid.getId();
 
-        raidMap.computeIfPresent(currentWorld, (world, raidDataMap) -> {
+        worldRaidMap.computeIfPresent(currentWorld, (world, raidDataMap) -> {
             raidDataMap.remove(raidId);
             return raidDataMap.isEmpty() ? null : raidDataMap;
         });
@@ -71,7 +71,7 @@ public class RaidManager {
         final int raidId = raid.getId();
 
         return Optional.ofNullable(
-                raidMap.getOrDefault(world, Collections.emptyMap()).get(raidId));
+                worldRaidMap.getOrDefault(world, Collections.emptyMap()).get(raidId));
     }
 
     /**
@@ -84,6 +84,6 @@ public class RaidManager {
         final World world = raid.getLocation().getWorld();
         final int raidId = raid.getId();
 
-        return raidMap.containsKey(world) && raidMap.get(world).containsKey(raidId);
+        return worldRaidMap.containsKey(world) && worldRaidMap.get(world).containsKey(raidId);
     }
 }

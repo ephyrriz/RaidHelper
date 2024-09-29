@@ -27,7 +27,7 @@ public class Config {
 
     private final JavaPlugin plugin;            // Plugin's instance
     private final FileConfiguration fileConfig; // Plugin's configuration file
-    private final Logger logger;                // Logger for reporting errors and information
+    private final Logger logger;                // Logger for debugging
 
     private List<World> worldList;              // List of valid worlds from the configuration
     private String message;                     // Message shown to players when action bar is triggered
@@ -43,18 +43,12 @@ public class Config {
      * If any critical values are missing or incorrect, the plugin will be disabled.
      */
     public void loadValues() {
-        try {
-            loadMainSettings();
-            loadAdvancedSettings();
-            loadWorldSettings();
+        loadMainSettings();
+        loadAdvancedSettings();
+        loadWorldSettings();
 
-            if (worldList.isEmpty()) {
-                logger.severe("No valid worlds found in config. Disabling the plugin.");
-                disablePlugin();
-            }
-        } catch (final Exception e) {
-            logger.severe("Error loading config values: " + e.getMessage());
-            e.printStackTrace();
+        if (worldList.isEmpty()) {
+            logger.severe("No valid worlds found in config. Disabling the plugin.");
             disablePlugin();
         }
     }
