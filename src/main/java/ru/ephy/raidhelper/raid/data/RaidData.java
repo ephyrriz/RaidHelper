@@ -1,4 +1,4 @@
-package ru.ephy.raidhelper.main;
+package ru.ephy.raidhelper.raid.data;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

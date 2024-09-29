@@ -2,12 +2,12 @@ package ru.ephy.raidhelper;
 
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.ephy.raidhelper.main.RaidManager;
+import ru.ephy.raidhelper.raid.manager.RaidManager;
 import ru.ephy.raidhelper.config.Config;
-import ru.ephy.raidhelper.main.RaidMonitor;
-import ru.ephy.raidhelper.main.RaidScheduler;
-import ru.ephy.raidhelper.main.events.BellListener;
-import ru.ephy.raidhelper.main.events.RaidEndListener;
+import ru.ephy.raidhelper.raid.monitor.RaidMonitor;
+import ru.ephy.raidhelper.raid.manager.RaidScheduler;
+import ru.ephy.raidhelper.raid.events.BellListener;
+import ru.ephy.raidhelper.raid.events.RaidEndListener;
 
 import java.util.logging.Logger;
 

@@ -1,4 +1,4 @@
-package ru.ephy.raidhelper.main.events;
+package ru.ephy.raidhelper.raid.events;
 
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
@@ -12,8 +12,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BellRingEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.ephy.raidhelper.main.RaidData;
-import ru.ephy.raidhelper.main.RaidManager;
+import ru.ephy.raidhelper.raid.data.RaidData;
+import ru.ephy.raidhelper.raid.manager.RaidManager;
 import ru.ephy.raidhelper.config.Config;
 
 import java.util.Map;

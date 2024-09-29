@@ -1,4 +1,4 @@
-package ru.ephy.raidhelper.main;
+package ru.ephy.raidhelper.raid.monitor;
 
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
@@ -6,6 +6,7 @@ import org.bukkit.Raid;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.config.Config;
+import ru.ephy.raidhelper.raid.manager.RaidManager;
 
 import java.util.logging.Logger;
 
