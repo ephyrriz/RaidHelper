@@ -7,6 +7,7 @@ import org.bukkit.Raid;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import ru.ephy.raidhelper.MayBeRemoved;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidData;
 
@@ -47,10 +48,10 @@ public class RaidManager {
      * @param raid The raid to be removed.
      */
     public void removeRaid(final Raid raid) {
-        final World world = raid.getLocation().getWorld();
+        final World currentWorld = raid.getLocation().getWorld();
         final int raidId = raid.getId();
 
-        raidMap.computeIfPresent(world, (key, raidDataMap) -> {
+        raidMap.computeIfPresent(currentWorld, (world, raidDataMap) -> {
             raidDataMap.remove(raidId);
             return raidDataMap.isEmpty() ? null : raidDataMap;
         });
@@ -64,6 +65,7 @@ public class RaidManager {
      * @return An Optional containing the RaidData associated with the raid, or empty if not found.
      */
     @NotNull
+    @MayBeRemoved
     public Optional<RaidData> getRaidLogic(final Raid raid) {
         final World world = raid.getLocation().getWorld();
         final int raidId = raid.getId();
