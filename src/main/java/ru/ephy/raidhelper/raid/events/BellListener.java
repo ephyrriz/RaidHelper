@@ -13,7 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BellRingEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.raid.data.RaidData;
-import ru.ephy.raidhelper.raid.manager.RaidManager;
+import ru.ephy.raidhelper.raid.data.RaidManager;
 import ru.ephy.raidhelper.config.Config;
 
 import java.util.Map;
@@ -36,7 +36,7 @@ public class BellListener implements Listener {
     private int delay;
 
     public void initializeVariables() {
-        radiusSquared = config.getRadiusSquared();
+        radiusSquared = Math.pow(config.getRadiusSquared(), 2);
         height = config.getHeight();
         delay = config.getDelay();
     }

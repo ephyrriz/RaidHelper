@@ -2,6 +2,7 @@ package ru.ephy.raidhelper.config;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -30,8 +31,8 @@ public class Config {
     private final Logger logger;                // Logger for debugging
 
     private List<World> worldList;              // List of valid worlds from the configuration
-    private String message;                     // Message shown to players when action bar is triggered
-    private double radiusSquared;               // The squared radius for bell teleportation effect
+    private Component message;                     // Message shown to players when action bar is triggered
+    private double radius;               // The squared radius for bell teleportation effect
     private int height;                         // The height above which raiders will be teleported
     private int cooldown;                       // The cooldown time before another teleportation can occur
     private int frequencyWorld;                 // Frequency for checking world raids
@@ -57,10 +58,9 @@ public class Config {
      * Loads main settings.
      */
     private void loadMainSettings() {
-        message = fileConfig.getString(MAIN_SETTINGS + ".message",
-                "If you can't find the raiders, just ring a bell and they will spawn above it.");
+        message = stringToComponent(MAIN_SETTINGS + ".message", "If you can't find the raiders, just ring a bell and they will spawn above it.");
+        radius = verifyNonNegDouble(MAIN_SETTINGS + ".radius", 50);
         height = verifyNonNegInt(MAIN_SETTINGS + ".height", 10);
-        radiusSquared = Math.pow(verifyNonNegDouble(MAIN_SETTINGS + ".radius", 50), 2);
         cooldown = verifyNonNegInt(MAIN_SETTINGS + ".cooldown", 60);
         delay = verifyNonNegInt(MAIN_SETTINGS + ".delay", 60);
     }
@@ -97,15 +97,28 @@ public class Config {
     }
 
     /**
-     * Validates that the provided configuration value is a non-negative integer.
+     * Turns a string to a component for deprecated methods such
+     * as send a message to players.
+     *
+     * @param path         the configuration path
+     * @param defaultValue the default value to use if the config value is invalid
+     * @return a valid, turned into a component value
+     */
+    private Component stringToComponent(final String path, final String defaultValue) {
+        final String value = fileConfig.getString(path, defaultValue);
+        return Component.text(value);
+    }
+
+    /**
+     * Validates that the provided configuration value is a non-negative double.
      * If the value is invalid, the default value is used.
      *
-     * @param path the configuration path
+     * @param path         the configuration path
      * @param defaultValue the default value to use if the config value is invalid
-     * @return a valid non-negative integer from the config or the default value
+     * @return a valid non-negative double from the config or the default value
      */
-    private int verifyNonNegInt(final String path, final int defaultValue) {
-        final int value = fileConfig.getInt(path, defaultValue);
+    private double verifyNonNegDouble(final String path, final double defaultValue) {
+        final double value = fileConfig.getDouble(path, defaultValue);
         if (value < 0) {
             logger.warning("Config value at '" + path + "' cannot be negative. Using default: " + defaultValue);
             return defaultValue;
@@ -114,15 +127,15 @@ public class Config {
     }
 
     /**
-     * Validates that the provided configuration value is a non-negative double.
+     * Validates that the provided configuration value is a non-negative integer.
      * If the value is invalid, the default value is used.
      *
-     * @param path the configuration path
+     * @param path         the configuration path
      * @param defaultValue the default value to use if the config value is invalid
-     * @return a valid non-negative double from the config or the default value
+     * @return a valid non-negative integer from the config or the default value
      */
-    private double verifyNonNegDouble(final String path, final double defaultValue) {
-        final double value = fileConfig.getDouble(path, defaultValue);
+    private int verifyNonNegInt(final String path, final int defaultValue) {
+        final int value = fileConfig.getInt(path, defaultValue);
         if (value < 0) {
             logger.warning("Config value at '" + path + "' cannot be negative. Using default: " + defaultValue);
             return defaultValue;

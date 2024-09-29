@@ -6,7 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.raid.RaidFinishEvent;
 import org.bukkit.event.raid.RaidStopEvent;
-import ru.ephy.raidhelper.raid.manager.RaidManager;
+import ru.ephy.raidhelper.raid.data.RaidManager;
 
 /**
  * Handles events related to raid completion or termination.

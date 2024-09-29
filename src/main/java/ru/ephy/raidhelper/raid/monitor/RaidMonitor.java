@@ -6,7 +6,7 @@ import org.bukkit.Raid;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.config.Config;
-import ru.ephy.raidhelper.raid.manager.RaidManager;
+import ru.ephy.raidhelper.raid.data.RaidManager;
 
 /**
  * This class is responsible for scheduled checks of

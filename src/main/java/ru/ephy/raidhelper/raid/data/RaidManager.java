@@ -1,4 +1,4 @@
-package ru.ephy.raidhelper.raid.manager;
+package ru.ephy.raidhelper.raid.data;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import ru.ephy.raidhelper.MayBeRemoved;
 import ru.ephy.raidhelper.config.Config;
-import ru.ephy.raidhelper.raid.data.RaidData;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -38,6 +37,7 @@ public class RaidManager {
         final int raidId = raid.getId();
         final RaidData raidData = new RaidData(raid, location, world);
 
+        logger.info("Raid added. RaidId: " + raidId + " | RaidLocation: " + location);
         worldRaidMap.computeIfAbsent(world, w -> new HashMap<>()).put(raidId, raidData);
     }
 
