@@ -43,7 +43,7 @@ public class Config {
     /**
      * Enum representing the raid check modes.
      */
-    private enum RaidCheckMode {
+    public enum RaidCheckMode {
         SCHEDULER,
         EVENT
     }

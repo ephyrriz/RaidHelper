@@ -16,7 +16,7 @@ import java.util.List;
  * If a raid is new, it is added to the map.
  */
 @RequiredArgsConstructor
-public class RaidMonitor {
+public class RaidSchedulerMonitor {
 
     private final JavaPlugin plugin;        // Plugin instance reference
     private final RaidManager raidManager;  // RaidManager instance
