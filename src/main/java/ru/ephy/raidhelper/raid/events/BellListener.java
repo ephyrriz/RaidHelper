@@ -36,7 +36,7 @@ public class BellListener implements Listener {
     private int delay;
 
     public void initializeVariables() {
-        radiusSquared = Math.pow(config.getRadiusSquared(), 2);
+        radiusSquared = Math.pow(config.getRadius(), 2);
         height = config.getHeight();
         delay = config.getDelay();
     }
