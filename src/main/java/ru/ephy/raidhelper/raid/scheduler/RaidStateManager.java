@@ -32,7 +32,7 @@ public class RaidStateManager {
     public void initialize() {
         message = config.getMessage();
         radius = config.getRadius();
-        cooldownTicks = config.getCooldown();
+        cooldownTicks = config.getBellWorkAfter();
     }
 
     /**

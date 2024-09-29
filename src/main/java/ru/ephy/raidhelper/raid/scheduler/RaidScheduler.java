@@ -31,7 +31,7 @@ public class RaidScheduler {
     public void startScheduler() throws IllegalArgumentException {
         setupRaidStateManager(); // Initialize the RaidStateManager
         Bukkit.getScheduler().runTaskTimer( // Schedule periodic checks on active raids
-                plugin, this::checkActiveRaids, 0, config.getFrequencyRaid());
+                plugin, this::checkActiveRaids, 0, config.getRaidCheckFrequency());
     }
 
     /**

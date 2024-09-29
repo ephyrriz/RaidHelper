@@ -8,6 +8,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
+import java.util.List;
+
 /**
  * This class is responsible for scheduled checks of
  * the active raids in the configured worlds.
@@ -20,6 +22,8 @@ public class RaidMonitor {
     private final RaidManager raidManager;  // RaidManager instance
     private final Config config;            // Config instance
 
+    private List<World> worldList;
+
     /**
      * Starts the raid scheduler to periodically
      * check for active raids.
@@ -27,7 +31,12 @@ public class RaidMonitor {
      * @throws IllegalArgumentException If an illegal argument was passed during the scheduling process.
      */
     public void startMonitor() throws IllegalArgumentException {
-        Bukkit.getScheduler().runTaskTimer(plugin, this::getActiveRaidsInWorlds, 0, config.getFrequencyWorld());
+        initialize();
+        Bukkit.getScheduler().runTaskTimer(plugin, this::getActiveRaidsInWorlds, 0, config.getWorldCheckFrequency());
+    }
+
+    private void initialize() {
+        worldList = config.getWorldList();
     }
 
     /**
@@ -35,9 +44,12 @@ public class RaidMonitor {
      * active raids and analyzes them one by one.
      */
     private void getActiveRaidsInWorlds() {
-        for (final World world : config.getWorldList()) {
-            for (final Raid raid : world.getRaids()) {
-                addRaidToMap(raid);
+        for (final World world : worldList) {
+            final List<Raid> raidList = world.getRaids();
+            if (!raidList.isEmpty()) {
+                for (final Raid raid : raidList) {
+                    addRaidToMap(raid);
+                }
             }
         }
     }
@@ -49,9 +61,6 @@ public class RaidMonitor {
      * @param raid The raid to be added.
      */
     private void addRaidToMap(final Raid raid) {
-        // If the raid is not already in the map, add it with its data
-        if (!raidManager.isRaidInMap(raid)) {
-            raidManager.addRaid(raid);
-        }
+        raidManager.addRaidIfAbsent(raid);
     }
 }

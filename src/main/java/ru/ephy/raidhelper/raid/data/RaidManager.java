@@ -31,14 +31,16 @@ public class RaidManager {
      *
      * @param raid The Raid instance to be added.
      */
-    public void addRaid(final Raid raid) {
-        final Location location = raid.getLocation();
-        final World world = location.getWorld();
-        final int raidId = raid.getId();
-        final RaidData raidData = new RaidData(raid, location, world);
+    public void addRaidIfAbsent(final Raid raid) {
+        if (isRaidInMap(raid)) {
+            final Location location = raid.getLocation();
+            final World world = location.getWorld();
+            final int raidId = raid.getId();
+            final RaidData raidData = new RaidData(raid, location, world);
 
-        logger.info("Raid added. RaidId: " + raidId + " | RaidLocation: " + location);
-        worldRaidMap.computeIfAbsent(world, w -> new HashMap<>()).put(raidId, raidData);
+            logger.info("Raid added. RaidId: " + raidId + " | RaidLocation: " + location);
+            worldRaidMap.computeIfAbsent(world, w -> new HashMap<>()).put(raidId, raidData);
+        }
     }
 
     /**
@@ -66,7 +68,7 @@ public class RaidManager {
      */
     @NotNull
     @MayBeRemoved
-    public Optional<RaidData> getRaidLogic(final Raid raid) {
+    public Optional<RaidData> getRaidData(final Raid raid) {
         final World world = raid.getLocation().getWorld();
         final int raidId = raid.getId();
 

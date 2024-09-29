@@ -1,16 +1,19 @@
-# Configuration for RaidHelper plugin
+# RaidHelper Plugin Config
 
 settings:
-  main:
-    message: "If you can't find the raiders, just ring a bell and they will spawn above it." # What's gonna be shown to playes in the radius after the time will pass
-    cooldown: 60 # After how many ticks players will be able to use the bell.
-    height: 10 # How far above raiders are going to spawn after the ring.
-    radius: 50 # How far the effect of the bell works.
-    delay: 60 # After how many ticks the raiders will teleport. ( Use ticks. E.g. 20 ticks = 1 second )
-  advanced:
-    frequencyWorld: 100 # How often should check for active raids in words. ( Use ticks. E.g. 20 ticks = 1 second )
-    frequencyRaid: 20 # How often should raid be checked for can the bell be used. ( Use ticks. E.g. 20 ticks = 1 second )
+  message: "Ring the bell to spawn raiders above it if they're not found."
+  bell_cooldown: 10    # Ticks before bell can be used again.
+  bell_work_after: 60 # Ticks before bell can be used since the start of a wave.
+  height: 10          # Spawn height above the bell.
+  radius: 50          # Effect radius of the bell.
+  delay: 60           # Delay in ticks before raiders teleport.
+
+  raid_check:
+    mode: SCHEDULER       # 'SCHEDULER' for periodic checks, 'EVENT' for event-driven.
+    world_frequency: 100  # Ticks between world raid checks. If mode is scheduler only.
+    raid_frequency: 20    # Ticks between individual raid checks.
+
   worlds:
     - world
-    #- world_nether
-    #- world_the_end
+    # - world_nether
+    # - world_the_end
