@@ -1,12 +1,13 @@
 # RaidHelper Plugin Config
 
 settings:
-  message: "Ring the bell to spawn raiders above it if they're not found."
-  bell_cooldown: 10    # Ticks before bell can be used again.
-  bell_work_after: 60 # Ticks before bell can be used since the start of a wave.
-  height: 10          # Spawn height above the bell.
-  radius: 50          # Effect radius of the bell.
-  delay: 60           # Delay in ticks before raiders teleport.
+  ring_message: "Ring the bell to spawn raiders above it if they're not found" # Message when you can call a ring
+  bell_cooldown: 100   # Ticks before bell can be used again.
+  cooldown_message: "Hey, not that quick! Wait a few seconds more before you can teleport raiders again" # Message when you can't ring a bell due to cooldown
+  bell_work_after: 60  # Ticks before bell can be used since the start of a wave.
+  height: 10           # Spawn height above the bell.
+  radius: 50           # Effect radius of the bell.
+  delay: 60            # Delay in ticks before raiders teleport.
 
   raid_check:
     mode: SCHEDULER        # 'SCHEDULER' for periodic checks, 'EVENT' for event-driven.

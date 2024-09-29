@@ -7,8 +7,8 @@ import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.monitor.RaidEventMonitor;
 import ru.ephy.raidhelper.raid.monitor.RaidSchedulerMonitor;
 import ru.ephy.raidhelper.raid.scheduler.RaidScheduler;
-import ru.ephy.raidhelper.raid.events.BellListener;
-import ru.ephy.raidhelper.raid.events.RaidEndListener;
+import ru.ephy.raidhelper.raid.events.bell.BellListener;
+import ru.ephy.raidhelper.raid.events.end.RaidEndListener;
 
 import java.util.logging.Logger;
 
@@ -45,7 +45,7 @@ public final class Raidhelper extends JavaPlugin {
         logger = getLogger();
         config = initializeConfig();
         pluginManager = getServer().getPluginManager();
-        raidManager = new RaidManager(this, config, logger);
+        raidManager = new RaidManager(logger);
     }
 
     /**
@@ -98,8 +98,7 @@ public final class Raidhelper extends JavaPlugin {
      * Registers event listeners for bell interactions and raid end events.
      */
     private void registerListeners() {
-        final BellListener bellListener = new BellListener(this, raidManager, config, logger);
-        bellListener.initializeVariables();
+        final BellListener bellListener = new BellListener(this, raidManager, config);
         final RaidEndListener raidEndListener = new RaidEndListener(raidManager);
 
         pluginManager.registerEvents(bellListener, this);

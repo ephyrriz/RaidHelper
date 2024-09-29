@@ -31,7 +31,8 @@ public class Config {
 
     private RaidCheckMode raidCheckMode;        // The way active raids in the worlds are being checked
     private List<World> worldList;              // List of valid worlds from the configuration
-    private Component message;                  // Message shown to players when action bar is triggered
+    private Component ringMessage;              // Message shown to players when action bar is triggered
+    private Component cooldownMessage;          // Message when a player rings a bell while it is in cooldown
     private double radius;                      // The squared radius for bell teleportation effect
     private int height;                         // The height above which raiders will be teleported
     private int bellCooldown;                   // The cooldown time before another teleportation can occur
@@ -70,11 +71,12 @@ public class Config {
      * Loads the main settings for the plugin.
      */
     private void loadMainSettings() {
-        message = getComponent(SETTINGS + ".message", "If you can't find the raiders, just ring a bell and they will spawn above it.");
+        ringMessage = getComponent(SETTINGS + ".ring_message", "If you can't find the raiders, just ring a bell and they will spawn above it.");
+        cooldownMessage = getComponent(SETTINGS + ".cooldown_message", "Hey, not that quick! Wait a few seconds more before you can teleport raiders again");
+        radius = getValidatedDouble(SETTINGS + ".radius", 50);
         bellCooldown = getValidatedInt(SETTINGS + ".bell_cooldown", 10);
         bellWorkAfter = getValidatedInt(SETTINGS + ".bell_work_after", 60);
         height = getValidatedInt(SETTINGS + ".height", 10);
-        radius = getValidatedDouble(SETTINGS + ".radius", 50);
         teleportDelay = getValidatedInt(SETTINGS + ".delay", 60);
     }
 

@@ -1,4 +1,4 @@
-package ru.ephy.raidhelper.raid.events;
+package ru.ephy.raidhelper.raid.events.end;
 
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Raid;

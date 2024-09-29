@@ -45,8 +45,6 @@ public class RaidSchedulerMonitor {
      * Starts the raid monitoring scheduler. The scheduler
      * periodically checks worlds for active raids
      * and processes them in batches to ensure server performance.
-     *
-     * @throws IllegalArgumentException If an illegal argument was passed during the scheduling process
      */
     public void startMonitor() {
         Bukkit.getScheduler().runTaskTimer(

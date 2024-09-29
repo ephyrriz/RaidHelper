@@ -30,7 +30,7 @@ public class RaidStateManager {
      * Sets up the action bar message, notification radius, and cooldown ticks.
      */
     public void initialize() {
-        message = config.getMessage();
+        message = config.getRingMessage();
         radius = config.getRadius();
         cooldownTicks = config.getBellWorkAfter();
     }
