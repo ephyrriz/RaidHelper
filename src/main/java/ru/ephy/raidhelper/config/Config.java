@@ -37,6 +37,7 @@ public class Config {
     private int bellCooldown;                   // The cooldown time before another teleportation can occur
     private int bellWorkAfter;                  // The time since the start of a wave before the bell will work
     private int worldCheckFrequency;            // Frequency for checking world raids
+    private int maxChecksPerTick;               // Max checks per tick for raids within worlds
     private int raidCheckFrequency;             // Frequency for checking raids statuses
     private int teleportDelay;                  // Delay before raiders are teleported
 
@@ -83,6 +84,7 @@ public class Config {
     private void loadRaidCheckSettings() {
         raidCheckMode = getRaidCheckMode(RAID_CHECK + ".mode", "SCHEDULER");
         worldCheckFrequency = getValidatedInt(RAID_CHECK + ".world_frequency", 100);
+        maxChecksPerTick = getValidatedInt(RAID_CHECK + ".max_checks_per_tick", 5);
         raidCheckFrequency = getValidatedInt(RAID_CHECK + ".raid_frequency", 20);
     }
 

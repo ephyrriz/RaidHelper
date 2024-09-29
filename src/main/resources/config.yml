@@ -9,9 +9,10 @@ settings:
   delay: 60           # Delay in ticks before raiders teleport.
 
   raid_check:
-    mode: SCHEDULER       # 'SCHEDULER' for periodic checks, 'EVENT' for event-driven.
-    world_frequency: 100  # Ticks between world raid checks. If mode is scheduler only.
-    raid_frequency: 20    # Ticks between individual raid checks.
+    mode: SCHEDULER        # 'SCHEDULER' for periodic checks, 'EVENT' for event-driven.
+    world_frequency: 100   # Ticks between world raid checks. If mode is scheduler only.
+    max_checks_per_tick: 5 # For world checks, how many raids within worlds per tick may be processed.
+    raid_frequency: 20     # Ticks between individual raid checks.
 
   worlds:
     - world

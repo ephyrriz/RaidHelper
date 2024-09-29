@@ -47,7 +47,7 @@ public class RaidEndListener implements Listener {
      */
     private void removeRaid(final Raid raid) {
         if (raidManager.isRaidInMap(raid)) {
-            raidManager.removeRaid(raid);
+            raidManager.removeRaidIfPresent(raid);
         }
     }
 }

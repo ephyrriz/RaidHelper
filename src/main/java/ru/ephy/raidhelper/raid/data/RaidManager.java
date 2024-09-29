@@ -21,10 +21,10 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public class RaidManager {
 
-    private final JavaPlugin plugin;                                                   // Plugin's instance
-    private final Config config;                                                       // Holds plugin configuration settings
-    private final Logger logger;                                                       // Logger for debugging
-    private final Map<World, Map<Integer, RaidData>> worldRaidMap = new HashMap<>();   // A map of worlds to their active raiding data
+    private final JavaPlugin plugin;                                                      // Plugin's instance
+    private final Config config;                                                          // Holds plugin configuration settings
+    private final Logger logger;                                                          // Logger for debugging
+    private final Map<World, Map<Integer, RaidData>> worldRaidMap = new WeakHashMap<>();  // A map of worlds to their active raiding data
 
     /**
      * Adds a raid to the map and starts its associated logic.
@@ -32,15 +32,15 @@ public class RaidManager {
      * @param raid The Raid instance to be added.
      */
     public void addRaidIfAbsent(final Raid raid) {
-        if (isRaidInMap(raid)) {
-            final Location location = raid.getLocation();
-            final World world = location.getWorld();
-            final int raidId = raid.getId();
-            final RaidData raidData = new RaidData(raid, location, world);
+        final Location location = raid.getLocation();
+        final World world = location.getWorld();
+        final int raidId = raid.getId();
 
-            logger.info("Raid added. RaidId: " + raidId + " | RaidLocation: " + location);
-            worldRaidMap.computeIfAbsent(world, w -> new HashMap<>()).put(raidId, raidData);
-        }
+        worldRaidMap.computeIfAbsent(world, w -> new HashMap<>())
+                .computeIfAbsent(raidId, id -> {
+                    logger.info("Raid added. RaidId: " + raidId + " | RaidLocation: " + location);
+                    return new RaidData(raid, location, world);
+                });
     }
 
     /**
@@ -49,7 +49,7 @@ public class RaidManager {
      *
      * @param raid The raid to be removed.
      */
-    public void removeRaid(final Raid raid) {
+    public void removeRaidIfPresent(final Raid raid) {
         final World currentWorld = raid.getLocation().getWorld();
         final int raidId = raid.getId();
 
