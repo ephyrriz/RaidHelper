@@ -4,7 +4,10 @@ main: ru.ephy.raidhelper.Raidhelper
 api-version: '1.20'
 
 author: ephy
-description: Makes fights with raiders way more comfortable. If you cannot find
-             the last raiders, ring a bell and they will spawn above it.
-             There are several configurations you would want to look at before
-             before using the plugin.
+description: >
+  Makes fights with raiders much more comfortable. If you cannot find 
+  the last raiders, ring a bell and they will spawn above it. 
+  Several configurations are available to customize the plugin 
+  to your needs.
+
+source: https://github.com/ephyrriz/RaidHelper

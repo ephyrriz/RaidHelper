@@ -13,7 +13,7 @@ import ru.ephy.raidhelper.raid.data.RaidManager;
  * When a raid finishes or stops, it is removed from the plugin's active raid list.
  */
 @RequiredArgsConstructor
-public class RaidEndListener implements Listener {
+public class RaidEnd implements Listener {
     private final RaidManager raidManager; // Manages active raids
 
     /**

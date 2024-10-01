@@ -7,7 +7,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class serves to regularly
@@ -20,7 +22,7 @@ public class RaidSchedulerMonitor {
     private final JavaPlugin plugin;        // To run the scheduler
     private final RaidManager raidManager;  // To get the needed methods of this class
     private final Config config;            // To get needed values from the config
-    private final List<World> worldList;    // To use for the checkActiveRaidsInWorlds method
+    private final Set<World> worldSet;    // To use for the checkActiveRaidsInWorlds method
     private final int maxChecksPerTick;     // To limit number of checked raids per tick
 
     private List<Raid> raidList;            // To process the list of raids of a world
@@ -37,8 +39,9 @@ public class RaidSchedulerMonitor {
         this.plugin = plugin;
         this.raidManager = raidManager;
         this.config = config;
-        worldList = config.getWorldList();
+        worldSet = config.getWorldSet();
         maxChecksPerTick = config.getMaxChecksPerTick();
+        raidList = new ArrayList<>();
     }
 
     /**
@@ -61,7 +64,7 @@ public class RaidSchedulerMonitor {
     private void checkActiveRaidsInWorlds() {
         raidList.clear();
 
-        for (final World world : worldList) {
+        for (final World world : worldSet) {
             raidList = world.getRaids();
             if (!raidList.isEmpty()) {
                 currentCheckIndex = 0;

@@ -6,7 +6,6 @@ import org.bukkit.Location;
 import org.bukkit.Raid;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
-import ru.ephy.raidhelper.MayBeRemoved;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -21,7 +20,7 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public class RaidManager {
     @Getter
-    private final Map<World, Map<Integer, RaidData>> worldRaidMap = new WeakHashMap<>();  // A map of worlds to their active raiding data
+    private final Map<World, Map<Integer, RaidData>> worldRaidMap = new HashMap<>();  // A map of worlds to their active raiding data
     private final Logger logger;                                                          // Logger for debugging
 
     /**
@@ -66,7 +65,6 @@ public class RaidManager {
      * @return An Optional containing the RaidData, or empty if no data is found.
      */
     @NotNull
-    @MayBeRemoved
     public Optional<RaidData> getRaidData(final Raid raid) {
         final World world = raid.getLocation().getWorld();
         final int raidId = raid.getId();

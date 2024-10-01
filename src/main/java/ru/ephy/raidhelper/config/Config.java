@@ -8,9 +8,9 @@ import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -21,26 +21,29 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public class Config {
 
-    private static final String SETTINGS = "settings";              // Main settings
-    private static final String RAID_CHECK = "settings.raid_check"; // Advanced settings
-    private static final String WORLDS = "settings.worlds";         // World settings
+    private static final String MESSAGES = "settings.messages";     // Messages section
+    private static final String MECHANICS = "settings.mechanics";   // Mechanics section
+    private static final String RAID_CHECK = "settings.raid_check"; // Raid check section
+    private static final String WORLDS = "settings.worlds";         // Worlds section
 
-    private final JavaPlugin plugin;            // Plugin's instance
-    private final FileConfiguration fileConfig; // Plugin's configuration file
-    private final Logger logger;                // Logger for debugging
+    private final JavaPlugin plugin;             // Plugin's instance
+    private final FileConfiguration fileConfig;  // Plugin's configuration file
+    private final Logger logger;                 // Logger for debugging
 
-    private RaidCheckMode raidCheckMode;        // The way active raids in the worlds are being checked
-    private List<World> worldList;              // List of valid worlds from the configuration
-    private Component ringMessage;              // Message shown to players when action bar is triggered
-    private Component cooldownMessage;          // Message when a player rings a bell while it is in cooldown
-    private double radius;                      // The squared radius for bell teleportation effect
-    private int height;                         // The height above which raiders will be teleported
-    private int bellCooldown;                   // The cooldown time before another teleportation can occur
-    private int bellWorkAfter;                  // The time since the start of a wave before the bell will work
-    private int worldCheckFrequency;            // Frequency for checking world raids
-    private int maxChecksPerTick;               // Max checks per tick for raids within worlds
-    private int raidCheckFrequency;             // Frequency for checking raids statuses
-    private int teleportDelay;                  // Delay before raiders are teleported
+    private RaidCheckMode raidCheckMode;         // Active raid check mode
+    private Set<World> worldSet;                 // Valid worlds from the configuration
+    private Component ringMessage;               // Action bar message
+    private Component cooldownMessage;           // Cooldown message
+    private Component someInCooldownMessage;     // Some raids cooldown message
+    private double radius;                       // Bell teleportation radius
+    private int height;                          // Height for raider teleportation
+    private int poolMaxSize;                     // Maximum size for Teleporter pool
+    private int bellCooldown;                    // Bell cooldown duration
+    private int bellWorkDelay;                   // Delay before bell activation
+    private int worldCheckFrequency;             // Frequency for world checks
+    private int maxChecksPerTick;                // Max checks per tick
+    private int raidCheckFrequency;              // Frequency for raid status checks
+    private int teleportDelay;                   // Delay before raiders teleport
 
     /**
      * Enum representing the raid check modes.
@@ -55,29 +58,38 @@ public class Config {
      * Disables the plugin if the world list is empty.
      */
     public void loadValues() {
-        loadMainSettings();
+        loadMessagesSeetings();
+        loadMechanicsSettings();
         loadRaidCheckSettings();
         loadWorldList();
 
-        if (worldList.isEmpty()) {
+        if (worldSet.isEmpty()) {
             logger.severe("No valid worlds found in config. Disabling the plugin.");
             disablePlugin();
         }
     }
 
-    // 1. Load Methods
+    /**
+     * Loads the messages settings for the plugin.
+     */
+    private void loadMessagesSeetings() {
+        ringMessage = getComponent(MESSAGES + ".ring",
+                "If you can't find the raiders, just ring a bell and they will spawn above it.");
+        cooldownMessage = getComponent(MESSAGES + ".cooldown",
+                "Hey, not that quick! Wait a few seconds more before you can teleport raiders again");
+        someInCooldownMessage = getComponent(MESSAGES + ".some_cooldown",
+                "Some of the raids are in cooldown, but those that work have teleported raiders");
+    }
 
     /**
-     * Loads the main settings for the plugin.
+     * Loads the mechanics settings for the plugin.
      */
-    private void loadMainSettings() {
-        ringMessage = getComponent(SETTINGS + ".ring_message", "If you can't find the raiders, just ring a bell and they will spawn above it.");
-        cooldownMessage = getComponent(SETTINGS + ".cooldown_message", "Hey, not that quick! Wait a few seconds more before you can teleport raiders again");
-        radius = getValidatedDouble(SETTINGS + ".radius", 50);
-        bellCooldown = getValidatedInt(SETTINGS + ".bell_cooldown", 10);
-        bellWorkAfter = getValidatedInt(SETTINGS + ".bell_work_after", 60);
-        height = getValidatedInt(SETTINGS + ".height", 10);
-        teleportDelay = getValidatedInt(SETTINGS + ".delay", 60);
+    private void loadMechanicsSettings() {
+        bellCooldown = getValidatedInt(MECHANICS + ".bell_cooldown", 100);
+        bellWorkDelay = getValidatedInt(MECHANICS + ".bell_work_delay", 60);
+        teleportDelay = getValidatedInt(MECHANICS + ".teleport_delay", 60);
+        height = getValidatedInt(MECHANICS + ".spawn_height", 10);
+        radius = getValidatedDouble(MECHANICS + ".effect_radius", 50);
     }
 
     /**
@@ -87,6 +99,7 @@ public class Config {
         raidCheckMode = getRaidCheckMode(RAID_CHECK + ".mode", "SCHEDULER");
         worldCheckFrequency = getValidatedInt(RAID_CHECK + ".world_frequency", 100);
         maxChecksPerTick = getValidatedInt(RAID_CHECK + ".max_checks_per_tick", 5);
+        poolMaxSize = getValidatedInt(RAID_CHECK + ".max_pool_size", 5);
         raidCheckFrequency = getValidatedInt(RAID_CHECK + ".raid_frequency", 20);
     }
 
@@ -96,15 +109,16 @@ public class Config {
      */
     private void loadWorldList() {
         final List<String> worldNames = fileConfig.getStringList(WORLDS);
-        worldList = new ArrayList<>(
-                worldNames.stream()
-                        .map(Bukkit::getWorld)
-                        .filter(Objects::nonNull)
-                        .toList()
-        );
-    }
+        worldSet = new HashSet<>();
 
-    // 2. Utility Methods
+        for (final String worldName : worldNames) {
+            final World world = Bukkit.getWorld(worldName);
+
+            if (world != null) {
+                worldSet.add(world);
+            }
+        }
+    }
 
     /**
      * Returns a Component for the provided config path,
@@ -170,8 +184,6 @@ public class Config {
         }
         return value;
     }
-
-    // 4. Error Handling
 
     /**
      * Disables the plugin due to critical configuration errors.

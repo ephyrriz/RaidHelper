@@ -27,6 +27,8 @@ public class RaidData {
     @Setter
     private boolean ringable = false;        // Determines if raiders can teleport when the bell rings
     @Setter
+    private boolean inCooldown = false;      // If true, the raid is in cooldown and won't teleport raiders
+    @Setter
     private boolean canResetCounter = false; // If true, prevents the counter from being reset
     private int counter = 0;                 // Tracks time (in ticks) since the raid was initialized or reset
 

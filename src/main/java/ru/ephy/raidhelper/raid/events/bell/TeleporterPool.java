@@ -1,0 +1,50 @@
+package ru.ephy.raidhelper.raid.events.bell;
+
+import org.bukkit.plugin.java.JavaPlugin;
+import ru.ephy.raidhelper.config.Config;
+import ru.ephy.raidhelper.raid.data.RaidManager;
+
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.logging.Logger;
+
+/**
+ * This class is being used to manage the pool
+ * of {@link Teleporter} instances to reduce
+ * the load on the server during periodic calls of
+ * the {@link BellRing} class.
+ */
+public class TeleporterPool {
+    private static final Queue<Teleporter> pool = new LinkedList<>();
+    private final int poolMaxSize;
+
+    public TeleporterPool(final Config config) {
+        poolMaxSize = config.getPoolMaxSize();
+    }
+
+    /**
+     * Lets the {@link BellRing} to borrow one of
+     * {@link Teleporter} to handle the teleport process.
+     *
+     * @return one of teleporters' instances
+     */
+    public Teleporter borrowTeleporter(final JavaPlugin plugin, final RaidManager raidManager,
+                                       final Config config, final Logger logger) {
+        if (!pool.isEmpty()) {
+            return pool.poll();
+        }
+        return new Teleporter(plugin, raidManager, config, logger);
+    }
+
+    /**
+     * Releases the used {@link Teleporter} back
+     * in the pool.
+     *
+     * @param teleporter The used Teleporter
+     */
+    public void releaseHandler(final Teleporter teleporter) {
+        if (pool.size() < poolMaxSize) {
+            pool.offer(teleporter);
+        }
+    }
+}

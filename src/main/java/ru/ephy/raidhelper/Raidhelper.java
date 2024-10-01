@@ -7,8 +7,8 @@ import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.monitor.RaidEventMonitor;
 import ru.ephy.raidhelper.raid.monitor.RaidSchedulerMonitor;
 import ru.ephy.raidhelper.raid.scheduler.RaidScheduler;
-import ru.ephy.raidhelper.raid.events.bell.BellListener;
-import ru.ephy.raidhelper.raid.events.end.RaidEndListener;
+import ru.ephy.raidhelper.raid.events.bell.BellRing;
+import ru.ephy.raidhelper.raid.events.end.RaidEnd;
 
 import java.util.logging.Logger;
 
@@ -35,8 +35,6 @@ public final class Raidhelper extends JavaPlugin {
         registerListeners();
     }
 
-    // 1. Initialization
-
     /**
      * Initializes core components like logger, config,
      * plugin manager, and raid manager.
@@ -50,7 +48,8 @@ public final class Raidhelper extends JavaPlugin {
 
     /**
      * Initializes configuration and loads config values.
-     * @return A Config object with loaded settings.
+     *
+     * @return A Config object with loaded settings
      */
     private Config initializeConfig() {
         saveDefaultConfig();
@@ -58,8 +57,6 @@ public final class Raidhelper extends JavaPlugin {
         config.loadValues();
         return config;
     }
-
-    // 2. Start Raid Monitoring and Scheduling
 
     /**
      * Starts the appropriate raid monitoring and scheduling
@@ -77,7 +74,7 @@ public final class Raidhelper extends JavaPlugin {
     private void startRaidMonitor() {
         switch (config.getRaidCheckMode()) {
             case SCHEDULER -> new RaidSchedulerMonitor(this, raidManager, config).startMonitor();
-            case EVENT -> pluginManager.registerEvents(new RaidEventMonitor(raidManager, config), this);
+            case EVENT -> pluginManager.registerEvents(new RaidEventMonitor(this, raidManager, config), this);
             default -> {
                 logger.warning("Invalid RaidCheckMode. Defaulting to SCHEDULER.");
                 new RaidSchedulerMonitor(this, raidManager, config).startMonitor();
@@ -92,20 +89,16 @@ public final class Raidhelper extends JavaPlugin {
         new RaidScheduler(this, raidManager, config, logger).startScheduler();
     }
 
-    // 3. Register Event Listeners
-
     /**
      * Registers event listeners for bell interactions and raid end events.
      */
     private void registerListeners() {
-        final BellListener bellListener = new BellListener(this, raidManager, config);
-        final RaidEndListener raidEndListener = new RaidEndListener(raidManager);
+        final BellRing bellRing = new BellRing(this, raidManager, config, logger);
+        final RaidEnd raidEnd = new RaidEnd(raidManager);
 
-        pluginManager.registerEvents(bellListener, this);
-        pluginManager.registerEvents(raidEndListener, this);
+        pluginManager.registerEvents(bellRing, this);
+        pluginManager.registerEvents(raidEnd, this);
     }
-
-    // 4. Plugin Lifecycle
 
     /**
      * Called when the plugin is disabled by the server.
