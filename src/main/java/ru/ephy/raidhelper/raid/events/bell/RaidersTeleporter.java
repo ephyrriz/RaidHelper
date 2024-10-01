@@ -12,6 +12,8 @@ import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidData;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,17 +23,18 @@ import java.util.Map;
  */
 public class RaidersTeleporter {
 
-    private final JavaPlugin plugin;       // Plugin instance used for scheduling
-    private final RaidManager raidManager; // Manages raid data and operations
+    private final JavaPlugin plugin;                            // Plugin instance used for scheduling
+    private final RaidManager raidManager;                      // Manages raid data and operations
 
-    private final double radiusSquared;    // Radius squared for calculating distances
-    private final int teleportHeight;      // Y offset for teleportation above the bell
-    private final int teleportDelayTicks;  // Delay before teleporting raiders
-    private final int bellCooldownTicks;   // Cooldown period between bell rings
+    private final List<Raid> raidArrayList = new ArrayList<>(); // List of raids
+    private final double radiusSquared;                         // Radius squared for calculating distances
+    private final int teleportHeight;                           // Y offset for teleportation above the bell
+    private final int teleportDelayTicks;                       // Delay before teleporting raiders
+    private final int bellCooldownTicks;                        // Cooldown period between bell rings
 
     @Getter
     @Setter
-    private boolean inCooldown = false;    // Tracks if the bell is on cooldown
+    private boolean inCooldown = false;                         // Tracks if the bell is on cooldown
 
     /**
      * Constructs the class for a proper work.
@@ -74,13 +77,26 @@ public class RaidersTeleporter {
      */
     private void teleportNearbyRaiders(final World bellWorld, final Location bellLocation) {
         final Map<Integer, RaidData> raidDataMap = raidManager.getWorldRaidMap().get(bellWorld);
-        final Location targetLocation = bellLocation.clone().add(0, teleportHeight, 0); // Adjust Y-coordinate
 
         if (raidDataMap != null) {
-            raidDataMap.values().stream()
-                    .filter(RaidData::isRingable) // Only consider "ringable" raids
-                    .filter(raidData -> isWithinBellRange(raidData.getLocation(), bellLocation))
-                    .forEach(raidData -> scheduleRaidersTeleport(raidData.getRaid(), targetLocation));
+            final Location targetLocation = bellLocation.clone().add(0, teleportHeight, 0);
+
+            for (final Map.Entry<Integer, RaidData> raidDataEntry : raidDataMap.entrySet()) {
+                final RaidData raidData = raidDataEntry.getValue();
+
+                if (raidData.isRingable() && isWithinBellRange(raidData.getLocation(), bellLocation)) {
+                    raidArrayList.add(raidData.getRaid());
+                }
+            }
+            processRaidList(targetLocation);
+        }
+    }
+
+    private void processRaidList(final Location targetLocation) {
+        if (!raidArrayList.isEmpty()) {
+            for (final Raid raid : raidArrayList) {
+                scheduleRaidersTeleport(raid, targetLocation);
+            }
         }
     }
 
@@ -92,8 +108,7 @@ public class RaidersTeleporter {
      * @return True if the raid is within range, false otherwise
      */
     private boolean isWithinBellRange(final Location raidLocation, final Location bellLocation) {
-        final double distanceSquared = raidLocation.distanceSquared(bellLocation);
-        return distanceSquared <= radiusSquared;
+        return raidLocation.distanceSquared(bellLocation) <= radiusSquared;
     }
 
 

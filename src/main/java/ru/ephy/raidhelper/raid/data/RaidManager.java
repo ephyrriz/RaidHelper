@@ -38,7 +38,7 @@ public class RaidManager {
         worldRaidMap.computeIfAbsent(raidWorld, w -> new HashMap<>())
                     .computeIfAbsent(raidId, id -> {
                         logger.info("Raid added. RaidId: " + raidId + " | RaidLocation: " + raidLocation);
-                        return new RaidData(raid, raidLocation, raidWorld);
+                        return new RaidData(raid, raidId, raidLocation, raidWorld);
                     });
     }
 

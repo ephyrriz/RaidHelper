@@ -20,6 +20,7 @@ import org.bukkit.World;
 public class RaidData {
 
     private final Raid raid;                 // The associated Raid instance
+    private final int raidId;                // The associated Raid's id
     private final Location location;         // The location where the raid is occurring
     private final World world;               // The world in which the raid is taking place
 
