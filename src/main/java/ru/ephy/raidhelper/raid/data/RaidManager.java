@@ -5,39 +5,43 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Raid;
 import org.bukkit.World;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * Manages all active raids across different worlds, handling their addition, removal,
+ * Manages all active raids across different worlds,
+ * handling their addition, removal,
  * and retrieval of associated RaidData instances.
- * <p>
- * This class optimizes raid handling to avoid redundant operations and ensure
- * raids are properly cleaned up when no longer needed.
+ *
+ * This class optimizes raid handling to avoid redundant
+ * operations and ensure raids are properly cleaned up
+ * when no longer needed.
  */
 @RequiredArgsConstructor
 public class RaidManager {
+
+    private final Logger logger;                                                      // Logger for debugging
     @Getter
     private final Map<World, Map<Integer, RaidData>> worldRaidMap = new HashMap<>();  // A map of worlds to their active raiding data
-    private final Logger logger;                                                          // Logger for debugging
 
     /**
-     * Adds a raid if it's not already present in the map and starts any associated logic.
-     * If the raid is new, it will be logged and added to the active raids map for tracking.
+     * Adds a raid if it's not already present in the map
+     * and starts any associated logic. If the raid is new,
+     * it will be logged and added to the active raids map
+     * for tracking.
      *
-     * @param raid The Raid instance to be registered.
+     * @param raid The Raid instance to be added
      */
-    public void addRaidIfAbsent(final Raid raid) {
+    public void registerRaidIfAbsent(final Raid raid) {
+        final int raidId = raid.getId();
         final Location raidLocation = raid.getLocation();
         final World raidWorld = raidLocation.getWorld();
-        final int raidId = raid.getId();
 
-        worldRaidMap.computeIfAbsent(raidWorld, w -> new HashMap<>())
+        worldRaidMap.computeIfAbsent(raidWorld, world -> new HashMap<>())
                     .computeIfAbsent(raidId, id -> {
                         logger.info("Raid added. RaidId: " + raidId + " | RaidLocation: " + raidLocation);
-                        return new RaidData(raid, raidId, raidLocation, raidWorld);
+                        return new RaidData(raidId, raid, raidLocation, raidWorld);
                     });
     }
 
@@ -47,30 +51,12 @@ public class RaidManager {
      *
      * @param raid The Raid instance to be unregistered.
      */
-    public void removeRaidIfPresent(final Raid raid) {
-        final World raidWorld = raid.getLocation().getWorld();
-        final int raidId = raid.getId();
-
-        worldRaidMap.computeIfPresent(raidWorld, (world, raidDataMap) -> {
-            raidDataMap.remove(raidId);
-            logger.info("Raid removed. RaidId: " + raidId + " | Location: " + raid.getLocation());
-            return raidDataMap.isEmpty() ? null : raidDataMap; // Clean up empty worlds
+    public void unregisterRaidIfPresent(final Raid raid) {
+        worldRaidMap.computeIfPresent(raid.getLocation().getWorld(), (world, raidDataMap) -> {
+            logger.info("Raid removed. RaidId: " + raid.getId() + " | Location: " + raid.getLocation());
+            raidDataMap.remove(raid.getId());
+            return raidDataMap.isEmpty() ? null : raidDataMap;
         });
-    }
-
-    /**
-     * Retrieves the RaidData associated with a given raid.
-     *
-     * @param raid The Raid instance for which data is requested.
-     * @return An Optional containing the RaidData, or empty if no data is found.
-     */
-    @NotNull
-    public Optional<RaidData> getRaidData(final Raid raid) {
-        final World world = raid.getLocation().getWorld();
-        final int raidId = raid.getId();
-
-        return Optional.ofNullable(
-                worldRaidMap.getOrDefault(world, Collections.emptyMap()).get(raidId));
     }
 
     /**
@@ -79,10 +65,12 @@ public class RaidManager {
      * @param raid The Raid instance to check for.
      * @return True if the raid is registered, false otherwise.
      */
-    public boolean isRaidInMap(final Raid raid) {
-        final World world = raid.getLocation().getWorld();
-        final int raidId = raid.getId();
+    public boolean isRaidRegisteredInMap(final Raid raid) {
+        if (worldRaidMap.isEmpty()) return false;
 
-        return worldRaidMap.containsKey(world) && worldRaidMap.get(world).containsKey(raidId);
+        final World raidWorld = raid.getLocation().getWorld();
+        final Map<Integer, RaidData> integerRaidDataMap = worldRaidMap.get(raidWorld);
+
+        return integerRaidDataMap != null && integerRaidDataMap.get(raid.getId()) != null;
     }
 }

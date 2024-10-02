@@ -57,7 +57,7 @@ public class Config {
      * Loads and validates configuration values.
      * Disables the plugin if the world list is empty.
      */
-    public void loadValues() {
+    public void loadConfig() {
         loadMessagesSeetings();
         loadMechanicsSettings();
         loadRaidCheckSettings();
@@ -124,9 +124,9 @@ public class Config {
      * Returns a Component for the provided config path,
      * or a default value.
      *
-     * @param path Configuration path.
-     * @param defaultValue Default string.
-     * @return A Component representing the message.
+     * @param path          Configuration path
+     * @param defaultValue  Default string
+     * @return A Component representing the message
      */
     private Component getComponent(final String path, final String defaultValue) {
         final String value = fileConfig.getString(path, defaultValue);
@@ -137,9 +137,9 @@ public class Config {
      * Retrieves the raid check mode from the config,
      * defaults to the provided value if invalid.
      *
-     * @param path Configuration path.
-     * @param defaultValue Default mode value.
-     * @return A RaidCheckMode value.
+     * @param path          Configuration path
+     * @param defaultValue  Default mode value
+     * @return A RaidCheckMode value
      */
     private RaidCheckMode getRaidCheckMode(final String path, final String defaultValue) {
         final String mode = fileConfig.getString(path, defaultValue).toUpperCase();
@@ -151,14 +151,13 @@ public class Config {
         }
     }
 
-    // 3. Validation Methods
-
     /**
-     * Returns a validated non-negative integer from the config, or the default value if invalid.
+     * Returns a validated non-negative integer from the
+     * config, or the default value if invalid.
      *
-     * @param path Configuration path.
-     * @param defaultValue Default value.
-     * @return A valid non-negative integer.
+     * @param path          Configuration path
+     * @param defaultValue  Default value
+     * @return A valid non-negative integer
      */
     private int getValidatedInt(final String path, final int defaultValue) {
         final int value = fileConfig.getInt(path, defaultValue);
@@ -170,11 +169,12 @@ public class Config {
     }
 
     /**
-     * Returns a validated non-negative double from the config, or the default value if invalid.
+     * Returns a validated non-negative double from the
+     * config, or the default value if invalid.
      *
-     * @param path Configuration path.
-     * @param defaultValue Default value.
-     * @return A valid non-negative double.
+     * @param path          Configuration path
+     * @param defaultValue  Default value
+     * @return A valid non-negative double
      */
     private double getValidatedDouble(final String path, final double defaultValue) {
         final double value = fileConfig.getDouble(path, defaultValue);
@@ -186,7 +186,7 @@ public class Config {
     }
 
     /**
-     * Disables the plugin due to critical configuration errors.
+     * Disables the plugin if called.
      */
     private void disablePlugin() {
         plugin.getServer().getPluginManager().disablePlugin(plugin);

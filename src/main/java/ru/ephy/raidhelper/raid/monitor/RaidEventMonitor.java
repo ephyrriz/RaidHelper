@@ -131,6 +131,6 @@ public class RaidEventMonitor implements Listener {
      * @param raid The raid to be added.
      */
     private void addRaidToMap(final Raid raid) {
-        raidManager.addRaidIfAbsent(raid);
+        raidManager.registerRaidIfAbsent(raid);
     }
 }

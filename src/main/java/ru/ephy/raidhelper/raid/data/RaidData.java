@@ -19,8 +19,8 @@ import org.bukkit.World;
 @RequiredArgsConstructor
 public class RaidData {
 
-    private final Raid raid;                 // The associated Raid instance
     private final int raidId;                // The associated Raid's id
+    private final Raid raid;                 // The associated Raid instance
     private final Location location;         // The location where the raid is occurring
     private final World world;               // The world in which the raid is taking place
 
@@ -53,12 +53,14 @@ public class RaidData {
      */
     @Override
     public String toString() {
-        return "RaidData{" +
-                "raidId=" + raid.getId() +
+        return "\nRaidData{" +
+                "raidId=" + raidId +
+                ", raid=" + raid +
                 ", location=" + location +
                 ", world=" + world +
                 ", ringable=" + ringable +
-                ", reset=" + canResetCounter +
+                ", inCooldown=" + inCooldown +
+                ", canResetCounter=" + canResetCounter +
                 ", counter=" + counter +
                 '}';
     }

@@ -54,7 +54,7 @@ public final class Raidhelper extends JavaPlugin {
     private Config initializeConfig() {
         saveDefaultConfig();
         config = new Config(this, getConfig(), logger);
-        config.loadValues();
+        config.loadConfig();
         return config;
     }
 
