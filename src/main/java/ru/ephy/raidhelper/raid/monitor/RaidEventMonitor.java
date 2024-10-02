@@ -24,16 +24,15 @@ public class RaidEventMonitor implements Listener {
     private final JavaPlugin plugin;            // Plugin instance for scheduling
     private final RaidManager raidManager;      // Manages raid registration
 
-    private final List<Raid> activeRaids;       // List of active raids in the current world
-    private final Set<World> activeWorlds;      // Tracks worlds currently processing raids
+    private final List<Raid> currentRaids;      // List of active raids in the current world
+    private final Set<World> processingWorlds;  // Tracks worlds currently processing raids
     private final Set<World> monitoredWorlds;   // Worlds to be monitored for active raids
     private final int maxRaidsPerTick;          // Maximum number of raids processed per tick
 
     private int raidIndex = 0;                  // Tracks current raid being processed
 
-
     /**
-     * Constructs the RaidEventMonitor for managing raid events.
+     * Constructs the {@link RaidEventMonitor} for managing raid events.
      *
      * @param plugin       JavaPlugin instance
      * @param raidManager  Manages raid operations
@@ -47,8 +46,8 @@ public class RaidEventMonitor implements Listener {
         monitoredWorlds = config.getWorldSet();
         maxRaidsPerTick = config.getMaxChecksPerTick();
 
-        activeRaids = new ArrayList<>();
-        activeWorlds = new HashSet<>();
+        currentRaids = new ArrayList<>();
+        processingWorlds = new HashSet<>();
     }
 
     /**
@@ -66,7 +65,7 @@ public class RaidEventMonitor implements Listener {
      * @param world World where the event occured
      */
     private void scanWorldsForRaids(final World world) {
-        if (monitoredWorlds.contains(world) && !activeWorlds.contains(world)) {
+        if (monitoredWorlds.contains(world) && !processingWorlds.contains(world)) {
             processWorldRaids(world);
         }
     }
@@ -77,12 +76,12 @@ public class RaidEventMonitor implements Listener {
      * @param world The world to check for raids.
      */
     private void processWorldRaids(final World world) {
-        activeRaids.clear();
-        activeRaids.addAll(world.getRaids());
+        currentRaids.clear();
+        currentRaids.addAll(world.getRaids());
 
-        if (!activeRaids.isEmpty()) {
+        if (!currentRaids.isEmpty()) {
             raidIndex = 0;
-            activeWorlds.add(world);
+            processingWorlds.add(world);
             processRaidsInBatches(world);
         }
     }
@@ -95,25 +94,25 @@ public class RaidEventMonitor implements Listener {
     private void processRaidsInBatches(final World world) {
         int processedRaids = 0;
 
-        while (processedRaids < maxRaidsPerTick && raidIndex < activeRaids.size()) {
-            registerRaidInMap(activeRaids.get(raidIndex));
+        while (processedRaids < maxRaidsPerTick && raidIndex < currentRaids.size()) {
+            registerRaid(currentRaids.get(raidIndex));
             raidIndex++;
             processedRaids++;
         }
 
-        if (raidIndex < activeRaids.size()) {
+        if (raidIndex < currentRaids.size()) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> processRaidsInBatches(world), 1L);
         } else {
-            activeWorlds.remove(world);
+            processingWorlds.remove(world);
         }
     }
 
     /**
-     * Registers a raid in the RaidManager if not already present.
+     * Registers a raid with the RaidManager if it is not already registered.
      *
-     * @param raid The raid to be registered.
+     * @param raid The raid to register
      */
-    private void registerRaidInMap(final Raid raid) {
+    private void registerRaid(final Raid raid) {
         raidManager.registerRaidIfAbsent(raid);
     }
 }

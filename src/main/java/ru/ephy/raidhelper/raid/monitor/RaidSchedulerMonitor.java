@@ -10,102 +10,103 @@ import ru.ephy.raidhelper.raid.data.RaidManager;
 import java.util.*;
 
 /**
- * This class serves to regularly
- * check valid worlds for active raids
- * in them to send these raids in the
- * raidMap.
+ * Monitors specified worlds for active raids
+ * and periodically registers them in the RaidManager.
  */
 public class RaidSchedulerMonitor {
 
-    private final JavaPlugin plugin;        // To run the scheduler
-    private final RaidManager raidManager;  // To get the needed methods of this class
-    private final Config config;            // To get needed values from the config
-    private final Set<World> worldSet;      // To use for the checkActiveRaidsInWorlds method
-    private final int maxChecksPerTick;     // To limit number of checked raids per tick
+    private final JavaPlugin plugin;          // Plugin instance for scheduling tasks
+    private final RaidManager raidManager;    // Manages raid registration
+    private final Config config;              // Configuration settings
 
-    private List<Raid> raidList;            // To process the list of raids of a world
-    private int currentCheckIndex = 0;      // To count current number of checks
-    private final Map<World, Boolean> worldBooleanMap = new HashMap<>(); // To block raids checks till the process ends
+    private final List<Raid> currentRaids;    // List of active raids in the current world
+    private final Set<World> processingWorlds; // Worlds currently being processed
+    private final Set<World> monitoredWorlds; // Worlds being monitored for raids
+    private final int maxRaidsPerTick;        // Maximum number of raids processed per tick
+
+    private int currentRaidIndex = 0;         // Index of the current raid being processed
 
     /**
-     * Constructs the class for a proper work.
+     * Constructs a {@link  RaidSchedulerMonitor} to monitor and process raids.
      *
-     * @param plugin       Plugin's instance
-     * @param raidManager  RaidManager's instance
-     * @param config       Config's instance
+     * @param plugin       The JavaPlugin instance
+     * @param raidManager  The RaidManager instance
+     * @param config       The Config instance for settings
      */
     public RaidSchedulerMonitor(final JavaPlugin plugin, final RaidManager raidManager,
                                 final Config config) {
         this.plugin = plugin;
         this.raidManager = raidManager;
         this.config = config;
-        worldSet = config.getWorldSet();
-        maxChecksPerTick = config.getMaxChecksPerTick();
-        raidList = new ArrayList<>();
+
+        monitoredWorlds = config.getWorldSet();
+        maxRaidsPerTick = config.getMaxChecksPerTick();
+
+        currentRaids = new ArrayList<>();
+        processingWorlds = new HashSet<>();
     }
 
     /**
-     * Starts the raid monitoring scheduler. The scheduler
-     * periodically checks worlds for active raids
-     * and processes them in batches to ensure server performance.
+     * Starts the raid monitoring scheduler.
+     * Periodically checks specified worlds for active raids
+     * and processes them to maintain server performance.
      */
     public void startMonitor() {
         Bukkit.getScheduler().runTaskTimer(
                 plugin,
-                this::checkActiveRaidsInWorlds,
-                0,
+                this::checkRaidsInWorlds,
+                0L,
                 config.getWorldCheckFrequency());
     }
 
     /**
-     * Check worlds for active raids in them;
-     * passes active raids to the addRaidToMap method.
+     * Checks all monitored worlds for active raids
+     * and initiates processing if any are found.
      */
-    private void checkActiveRaidsInWorlds() {
-        raidList.clear();
+    private void checkRaidsInWorlds() {
+        for (final World world : monitoredWorlds) {
 
-        for (final World world : worldSet) {
-            if (worldBooleanMap.get(world) == null) {
-                raidList = world.getRaids();
-                if (!raidList.isEmpty()) {
-                    currentCheckIndex = 0;
-                    worldBooleanMap.put(world, true);
-                    processRaidList(world);
+            if (!processingWorlds.contains(world)) {
+                currentRaids.clear();
+                currentRaids.addAll(world.getRaids());
+
+                if (!currentRaids.isEmpty()) {
+                    currentRaidIndex = 0;
+                    processingWorlds.add(world);
+                    processRaidsInWorld(world);
                 }
             }
         }
     }
 
     /**
-     * Processes the current list of raids in batches,
-     * with a limit on the number of raids processed
-     * per tick to avoid excessive strain on server resources.
+     * Loads the active raids in the specified world
+     * and processes them in manageable batches.
+     *
+     * @param world The world to check for active raids
      */
-    private void processRaidList(final World world) {
+    private void processRaidsInWorld(final World world) {
         int processedCount = 0; // Track how many raids have been processed
 
-        while (processedCount < maxChecksPerTick && currentCheckIndex < raidList.size()) {
-            final Raid raid = raidList.get(currentCheckIndex);
-            addRaidToMap(raid);
-            currentCheckIndex++;
+        while (processedCount < maxRaidsPerTick && currentRaidIndex < currentRaids.size()) {
+            registerRaid(currentRaids.get(currentRaidIndex));
+            currentRaidIndex++;
             processedCount++;
         }
 
-        // If not all raids were processed, schedule the next batch to run after 1 tick
-        if (currentCheckIndex < raidList.size()) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> processRaidList(world), 1);
+        if (currentRaidIndex < currentRaids.size()) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> processRaidsInWorld(world), 1L);
         } else {
-            worldBooleanMap.remove(world);
+            processingWorlds.remove(world);
         }
     }
 
     /**
-     * Adds a raid to the map; if it is not already in the raid
-     * data map, it will be added. Otherwise, it is ignored.
+     * Registers a raid with the RaidManager if it is not already registered.
      *
-     * @param raid The raid to be added.
+     * @param raid The raid to register
      */
-    private void addRaidToMap(final Raid raid) {
+    private void registerRaid(final Raid raid) {
         raidManager.registerRaidIfAbsent(raid);
     }
 }
