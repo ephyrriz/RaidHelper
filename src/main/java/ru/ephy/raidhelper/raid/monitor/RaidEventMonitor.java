@@ -5,132 +5,115 @@ import org.bukkit.Raid;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.raid.RaidFinishEvent;
-import org.bukkit.event.raid.RaidSpawnWaveEvent;
-import org.bukkit.event.raid.RaidStopEvent;
-import org.bukkit.event.raid.RaidTriggerEvent;
+import org.bukkit.event.raid.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
- * This class serves to detect multiple of
- * events related to raids as key moments
- * to check worlds for any active raids
- * and input them in the RaidManager's map.
+ * Monitors raid-related events and processes active raids
+ * by registering them in the RaidManager.
  */
 public class RaidEventMonitor implements Listener {
 
-    private final JavaPlugin plugin;       // Plugin's instance
-    private final RaidManager raidManager; // To get the needed methods of this class
-    private final Set<World> worldSet;   // To use for the checkActiveRaidsInWorlds method
-    private final int maxChecksPerTick;    // To limit number of checked raids per tick
+    private final JavaPlugin plugin;            // Plugin instance for scheduling
+    private final RaidManager raidManager;      // Manages raid registration
 
-    private List<Raid> raidList;           // To process the list of raids of a world
-    private int currentCheckIndex = 0;     // To count current number of checks
+    private final List<Raid> activeRaids;       // List of active raids in the current world
+    private final Set<World> activeWorlds;      // Tracks worlds currently processing raids
+    private final Set<World> monitoredWorlds;   // Worlds to be monitored for active raids
+    private final int maxRaidsPerTick;          // Maximum number of raids processed per tick
+
+    private int raidIndex = 0;                  // Tracks current raid being processed
+
 
     /**
-     * Constructs the class for a proper work.
+     * Constructs the RaidEventMonitor for managing raid events.
      *
-     * @param raidManager  RaidManager class instance
-     * @param config       Config class instance
+     * @param plugin       JavaPlugin instance
+     * @param raidManager  Manages raid operations
+     * @param config       Config instance for retrieving settings
      */
-    public RaidEventMonitor(final JavaPlugin plugin, final RaidManager raidManager, final Config config) {
+    public RaidEventMonitor(final JavaPlugin plugin, final RaidManager raidManager,
+                            final Config config) {
         this.plugin = plugin;
         this.raidManager = raidManager;
-        worldSet = config.getWorldSet();
-        maxChecksPerTick = config.getMaxChecksPerTick();
-        raidList = new ArrayList<>();
+
+        monitoredWorlds = config.getWorldSet();
+        maxRaidsPerTick = config.getMaxChecksPerTick();
+
+        activeRaids = new ArrayList<>();
+        activeWorlds = new HashSet<>();
     }
 
     /**
-     * Is being called when a raid starts.
+     * Handles the event when a raid is triggered,
+     * finished, stopped, or when a new wave spawns.
      *
-     * @param event RaidTriggerEvent
+     * @param event RaidEvent
      */
     @EventHandler
-    public void on(final RaidTriggerEvent event){
-        checkActiveRaidsInWorlds();
-    }
+    public void on(final RaidEvent event) { scanWorldsForRaids(event.getWorld()); }
 
     /**
-     * Is being called when a raid's wave spawns.
+     * Scans all monitored worlds for active raids.
      *
-     * @param event RaidSpawnWaveEvent
+     * @param world World where the event occured
      */
-    @EventHandler
-    public void on(final RaidSpawnWaveEvent event) {
-        checkActiveRaidsInWorlds();
-    }
-
-    /**
-     * Is being called when a raid finishes.
-     *
-     * @param event RaidFinishEvent
-     */
-    @EventHandler
-    public void on(final RaidFinishEvent event) {
-        checkActiveRaidsInWorlds();
-    }
-
-    /**
-     * Is being called when a raid stops.
-     *
-     * @param event RaidStopEvent
-     */
-    @EventHandler
-    public void on(final RaidStopEvent event) {
-        checkActiveRaidsInWorlds();
-    }
-
-    /**
-     * Check worlds for active raids in them;
-     * passes active raids to the addRaidToMap method.
-     */
-    private void checkActiveRaidsInWorlds() {
-        raidList.clear();
-
-        for (final World world : worldSet) {
-            raidList = world.getRaids();
-            if (!raidList.isEmpty()) {
-                currentCheckIndex = 0;
-                processRaidList();
-            }
+    private void scanWorldsForRaids(final World world) {
+        if (monitoredWorlds.contains(world) && !activeWorlds.contains(world)) {
+            processWorldRaids(world);
         }
     }
 
     /**
-     * Processes the current list of raids in batches,
-     * with a limit on the number of raids processed
-     * per tick to avoid excessive strain on server resources.
+     * Checks a world for active raids and processes them.
+     *
+     * @param world The world to check for raids.
      */
-    private void processRaidList() {
-        int processedCount = 0; // Track how many raids have been processed
+    private void processWorldRaids(final World world) {
+        activeRaids.clear();
+        activeRaids.addAll(world.getRaids());
 
-        while (processedCount < maxChecksPerTick && currentCheckIndex < raidList.size()) {
-            final Raid raid = raidList.get(currentCheckIndex);
-            addRaidToMap(raid);
-            currentCheckIndex++;
-            processedCount++;
-        }
-
-        // If not all raids were processed, schedule the next batch to run after 1 tick
-        if (currentCheckIndex < raidList.size()) {
-            Bukkit.getScheduler().runTaskLater(plugin, this::processRaidList, 1);
+        if (!activeRaids.isEmpty()) {
+            raidIndex = 0;
+            activeWorlds.add(world);
+            processRaidsInBatches(world);
         }
     }
 
     /**
-     * Adds a raid to the map; if it is not already in the raid
-     * data map, it will be added. Otherwise, it is ignored.
+     * Processes raids in batches, limiting the number per tick.
      *
-     * @param raid The raid to be added.
+     * @param world The world currently being processed.
      */
-    private void addRaidToMap(final Raid raid) {
+    private void processRaidsInBatches(final World world) {
+        int processedRaids = 0;
+
+        while (processedRaids < maxRaidsPerTick && raidIndex < activeRaids.size()) {
+            registerRaidInMap(activeRaids.get(raidIndex));
+            raidIndex++;
+            processedRaids++;
+        }
+
+        if (raidIndex < activeRaids.size()) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> processRaidsInBatches(world), 1L);
+        } else {
+            activeWorlds.remove(world);
+        }
+    }
+
+    /**
+     * Registers a raid in the RaidManager if not already present.
+     *
+     * @param raid The raid to be registered.
+     */
+    private void registerRaidInMap(final Raid raid) {
         raidManager.registerRaidIfAbsent(raid);
     }
 }
