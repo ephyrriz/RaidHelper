@@ -71,6 +71,6 @@ public class RaidManager {
         final World raidWorld = raid.getLocation().getWorld();
         final Map<Integer, RaidData> integerRaidDataMap = worldRaidMap.get(raidWorld);
 
-        return integerRaidDataMap != null && integerRaidDataMap.get(raid.getId()) != null;
+        return integerRaidDataMap != null && integerRaidDataMap.containsKey(raid.getId());
     }
 }
