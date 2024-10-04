@@ -15,16 +15,16 @@ import java.util.*;
  */
 public class RaidSchedulerMonitor {
 
-    private final JavaPlugin plugin;          // Plugin instance for scheduling tasks
-    private final RaidManager raidManager;    // Manages raid registration
-    private final Config config;              // Configuration settings
+    private final JavaPlugin plugin;           // Plugin instance for scheduling tasks
+    private final RaidManager raidManager;     // Manages raid registration
+    private final Config config;               // Configuration settings
 
-    private final List<Raid> currentRaids;    // List of active raids in the current world
+    private final List<Raid> currentRaids;     // List of active raids in the current world
     private final Set<World> processingWorlds; // Worlds currently being processed
-    private final Set<World> monitoredWorlds; // Worlds being monitored for raids
-    private final int maxRaidsPerTick;        // Maximum number of raids processed per tick
+    private final Set<World> monitoredWorlds;  // Worlds being monitored for raids
+    private final int maxRaidsPerTick;         // Maximum number of raids processed per tick
 
-    private int currentRaidIndex = 0;         // Index of the current raid being processed
+    private int currentRaidIndex = 0;          // Index of the current raid being processed
 
     /**
      * Constructs a {@link  RaidSchedulerMonitor} to monitor and process raids.

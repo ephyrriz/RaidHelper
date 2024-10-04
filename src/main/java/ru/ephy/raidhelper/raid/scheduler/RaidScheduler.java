@@ -2,11 +2,13 @@ package ru.ephy.raidhelper.raid.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidData;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -25,13 +27,14 @@ public class RaidScheduler {
 
     /**
      * Starts the raid event scheduler, running periodic checks on active raids.
-     *
-     * @throws IllegalArgumentException If an illegal argument was passed during the scheduling process.
      */
-    public void startScheduler() throws IllegalArgumentException {
+    public void startScheduler() {
         setupRaidStateManager(); // Initialize the RaidStateManager
         Bukkit.getScheduler().runTaskTimer( // Schedule periodic checks on active raids
-                plugin, this::checkActiveRaids, 0, config.getRaidCheckFrequency());
+                plugin,
+                this::checkActiveRaids,
+                0L,
+                config.getRaidCheckFrequency());
     }
 
     /**
@@ -39,7 +42,6 @@ public class RaidScheduler {
      */
     private void setupRaidStateManager() {
         raidStateManager = new RaidStateManager(config, logger); // Create new instance
-        raidStateManager.initialize(); // Initialize with config values
     }
 
     /**
@@ -47,8 +49,11 @@ public class RaidScheduler {
      * This method iterates over all active raids and updates their respective RaidData.
      */
     private void checkActiveRaids() {
-        raidManager.getWorldRaidMap().forEach((world, raidDataMap) ->
-                raidDataMap.forEach((raidId, raidData) -> updateRaidState(raidData)));
+        for (final Map<Integer, RaidData> raidDatMap : raidManager.getWorldRaidMap().values()) {
+            for (final Map.Entry<Integer, RaidData> raidDataEntry : raidDataMap.entrySet()) {
+                updateRaidState(raidDataEntry.getValue());
+            }
+        }
     }
 
     /**

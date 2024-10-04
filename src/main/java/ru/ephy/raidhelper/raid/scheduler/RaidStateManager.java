@@ -1,6 +1,5 @@
 package ru.ephy.raidhelper.raid.scheduler;
 
-import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Raid;
 import org.bukkit.entity.Player;
@@ -16,20 +15,21 @@ import java.util.logging.Logger;
  * Manages the state of raids, handling the logic for wave progression
  * and player notifications based on raid status.
  */
-@RequiredArgsConstructor
 public class RaidStateManager {
 
-    private final Config config; // Holds plugin configuration settings
-    private final Logger logger; // Logger for debugging
-    private Component message;   // Action bar message for players
-    private double radius;       // Radius for notifying players
-    private int cooldownTicks;   // Cooldown duration
+    private final Logger logger;       // Logger for debugging
+
+    private final Component message;   // Action bar message for players
+    private final double radius;       // Radius for notifying players
+    private final int cooldownTicks;   // Cooldown duration
 
     /**
      * Initializes the RaidStateManager with configuration values.
      * Sets up the action bar message, notification radius, and cooldown ticks.
      */
-    public void initialize() {
+    public RaidStateManager(final Config config, final Logger logger) {
+        this.logger = logger;
+
         message = config.getRingMessage();
         radius = config.getRadius();
         cooldownTicks = config.getBellWorkDelay();

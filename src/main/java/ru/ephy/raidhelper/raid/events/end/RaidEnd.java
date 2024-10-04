@@ -23,8 +23,7 @@ public class RaidEnd implements Listener {
      */
     @EventHandler
     public void on(final RaidFinishEvent event) {
-        final Raid raid = event.getRaid();
-        removeRaid(raid);
+        removeRaid(event.getRaid());
     }
 
     /**
@@ -34,8 +33,7 @@ public class RaidEnd implements Listener {
      */
     @EventHandler
     public void on(final RaidStopEvent event) {
-        final Raid raid = event.getRaid();
-        removeRaid(raid);
+        removeRaid(event.getRaid());
     }
 
 
@@ -46,8 +44,6 @@ public class RaidEnd implements Listener {
      * @param raid The raid instance to be removed.
      */
     private void removeRaid(final Raid raid) {
-        if (raidManager.isRaidRegisteredInMap(raid)) {
-            raidManager.unregisterRaidIfPresent(raid);
-        }
+        raidManager.unregisterRaidIfPresent(raid);
     }
 }
