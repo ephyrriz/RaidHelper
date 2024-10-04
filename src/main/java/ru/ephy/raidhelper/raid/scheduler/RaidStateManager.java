@@ -41,10 +41,8 @@ public class RaidStateManager {
      * @param raidData The RaidData instance containing information about the current raid.
      */
     public void updateRaidState(final RaidData raidData) {
-        final Raid raid = raidData.getRaid();
-
         // Determine the status of the raid and handle accordingly.
-        if (isWaveEnded(raid)) {
+        if (isWaveEnded(raidData.getRaid())) {
             handleWaveEnd(raidData); // Handle logic for ended wave.
         } else {
             handleOngoingWave(raidData); // Handle logic for ongoing wave.
@@ -117,6 +115,9 @@ public class RaidStateManager {
      */
     private void sendActionBarMessage(final RaidData raidData) {
         final Collection<Player> nearbyPlayers = raidData.getLocation().getNearbyPlayers(radius);
-        nearbyPlayers.forEach(player -> player.sendActionBar(message));
+
+        for (final Player player : nearbyPlayers) {
+            player.sendMessage(message);
+        }
     }
 }

@@ -42,7 +42,6 @@ public class Config {
     private int bellWorkDelay;                   // Delay before bell activation
     private int worldCheckFrequency;             // Frequency for world checks
     private int maxChecksPerTick;                // Max checks per tick
-    private int raidCheckFrequency;              // Frequency for raid status checks
     private int teleportDelay;                   // Delay before raiders teleport
 
     /**
@@ -100,7 +99,6 @@ public class Config {
         worldCheckFrequency = getValidatedInt(RAID_CHECK + ".world_frequency", 100);
         maxChecksPerTick = getValidatedInt(RAID_CHECK + ".max_checks_per_tick", 5);
         poolMaxSize = getValidatedInt(RAID_CHECK + ".max_pool_size", 5);
-        raidCheckFrequency = getValidatedInt(RAID_CHECK + ".raid_frequency", 20);
     }
 
     /**
