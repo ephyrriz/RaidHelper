@@ -34,6 +34,11 @@ public class RaidManager {
      * @param raid The Raid instance to be added
      */
     public void registerRaidIfAbsent(final Raid raid) {
+        if (raid == null) {
+            logger.warning("The passed raid to the register is null.");
+            return;
+        }
+
         final int raidId = raid.getId();
         final Location raidLocation = raid.getLocation();
         final World raidWorld = raidLocation.getWorld();

@@ -73,11 +73,11 @@ public final class Raidhelper extends JavaPlugin {
      */
     private void startRaidMonitor() {
         switch (config.getRaidCheckMode()) {
-            case SCHEDULER -> new RaidSchedulerMonitor(this, raidManager, config).startMonitor();
+            case SCHEDULER -> new RaidSchedulerMonitor(this, raidManager, config, logger).startMonitor();
             case EVENT -> pluginManager.registerEvents(new RaidEventMonitor(this, raidManager, config), this);
             default -> {
                 logger.warning("Invalid RaidCheckMode. Defaulting to SCHEDULER.");
-                new RaidSchedulerMonitor(this, raidManager, config).startMonitor();
+                new RaidSchedulerMonitor(this, raidManager, config, logger).startMonitor();
             }
         }
     }

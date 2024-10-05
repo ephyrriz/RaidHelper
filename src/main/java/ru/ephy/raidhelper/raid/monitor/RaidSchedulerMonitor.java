@@ -8,6 +8,7 @@ import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Monitors specified worlds for active raids
@@ -18,6 +19,7 @@ public class RaidSchedulerMonitor {
     private final JavaPlugin plugin;              // Plugin instance for scheduling tasks
     private final RaidManager raidManager;        // Manages raid registration
     private final Config config;                  // Configuration settings
+    private final Logger logger;                  // Logger for debugging
 
     private final Queue<Raid> raidQueue;          // List of active raids in the current world
     private final Set<World> monitoredWorlds;     // Worlds being monitored for raids
@@ -31,10 +33,11 @@ public class RaidSchedulerMonitor {
      * @param config       The Config instance for settings
      */
     public RaidSchedulerMonitor(final JavaPlugin plugin, final RaidManager raidManager,
-                                final Config config) {
+                                final Config config, final Logger logger) {
         this.plugin = plugin;
         this.raidManager = raidManager;
         this.config = config;
+        this.logger = logger;
 
         monitoredWorlds = config.getWorldSet();
         maxRaidsPerTick = config.getMaxChecksPerTick();
@@ -82,9 +85,10 @@ public class RaidSchedulerMonitor {
 
         while (processedCount < maxRaidsPerTick && !raidQueue.isEmpty()) {
             final Raid raid = raidQueue.poll();
+            logger.info("Processing Raid: " + (raid != null ? raid.getId() : "null"));
 
             if (raid != null && raid.isStarted()) {
-                registerRaid(raidQueue.poll());
+                registerRaid(raid);
                 processedCount++;
             }
         }
