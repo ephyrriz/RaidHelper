@@ -9,23 +9,33 @@ import java.util.Queue;
 import java.util.logging.Logger;
 
 /**
- * This class is being used to manage the pool
- * of {@link Teleporter} instances to reduce
- * the load on the server during periodic calls of
- * the {@link BellRing} class.
+ * This class manages the pool of {@link Teleporter}
+ * instances to reduce the load on the server during
+ * periodic calls of the {@link BellRing} class.
  */
 public class TeleporterPool {
-    private static final Queue<Teleporter> pool = new LinkedList<>();
+
+    private final Queue<Teleporter> pool;
     private final int poolMaxSize;
 
+    /**
+     * Constructs the {@link TeleporterPool} for managing Teleport instances
+     *
+     * @param config Configuration
+     */
     public TeleporterPool(final Config config) {
+        pool = new LinkedList<>();
         poolMaxSize = config.getPoolMaxSize();
     }
 
     /**
-     * Lets the {@link BellRing} to borrow one of
+     * Lets the {@link BellRing} borrow one of
      * {@link Teleporter} to handle the teleport process.
      *
+     * @param plugin       The Plugin's instance for schedulers
+     * @param raidManager  The RaidManager to use for processing raids
+     * @param config       The Config's instance for initializing needed variables
+     * @param logger       Logger for logging messages
      * @return one of teleporters' instances
      */
     public Teleporter borrowTeleporter(final JavaPlugin plugin, final RaidManager raidManager,
@@ -37,8 +47,7 @@ public class TeleporterPool {
     }
 
     /**
-     * Releases the used {@link Teleporter} back
-     * in the pool.
+     * Releases the used {@link Teleporter} back in the pool.
      *
      * @param teleporter The used Teleporter
      */
