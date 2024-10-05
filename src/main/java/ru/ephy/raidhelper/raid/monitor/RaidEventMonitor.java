@@ -10,10 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Monitors raid-related events and processes active raids
@@ -24,12 +21,10 @@ public class RaidEventMonitor implements Listener {
     private final JavaPlugin plugin;            // Plugin instance for scheduling
     private final RaidManager raidManager;      // Manages raid registration
 
-    private final List<Raid> currentRaids;      // List of active raids in the current world
+    private final Queue<Raid> raidQueue;        // List of active raids in the current world
     private final Set<World> processingWorlds;  // Tracks worlds currently processing raids
     private final Set<World> monitoredWorlds;   // Worlds to be monitored for active raids
     private final int maxRaidsPerTick;          // Maximum number of raids processed per tick
-
-    private int raidIndex = 0;                  // Tracks current raid being processed
 
     /**
      * Constructs the {@link RaidEventMonitor} for managing raid events.
@@ -46,7 +41,7 @@ public class RaidEventMonitor implements Listener {
         monitoredWorlds = config.getWorldSet();
         maxRaidsPerTick = config.getMaxChecksPerTick();
 
-        currentRaids = new ArrayList<>();
+        raidQueue = new LinkedList<>();
         processingWorlds = new HashSet<>();
     }
 
@@ -57,15 +52,15 @@ public class RaidEventMonitor implements Listener {
      * @param event RaidEvent
      */
     @EventHandler
-    public void on(final RaidEvent event) { scanWorldsForRaids(event.getWorld()); }
+    public void on(final RaidEvent event) { scanWorldForRaids(event.getWorld()); }
 
     /**
      * Scans all monitored worlds for active raids.
      *
      * @param world World where the event occured
      */
-    private void scanWorldsForRaids(final World world) {
-        if (monitoredWorlds.contains(world) && !processingWorlds.contains(world)) {
+    private void scanWorldForRaids(final World world) {
+        if (monitoredWorlds.contains(world)) {
             processWorldRaids(world);
         }
     }
@@ -76,34 +71,29 @@ public class RaidEventMonitor implements Listener {
      * @param world The world to check for raids.
      */
     private void processWorldRaids(final World world) {
-        currentRaids.clear();
-        currentRaids.addAll(world.getRaids());
+        raidQueue.addAll(world.getRaids());
 
-        if (!currentRaids.isEmpty()) {
-            raidIndex = 0;
-            processingWorlds.add(world);
-            processRaidsInBatches(world);
+        if (!raidQueue.isEmpty()) {
+            processRaidsInBatches();
         }
     }
 
     /**
      * Processes raids in batches, limiting the number per tick.
-     *
-     * @param world The world currently being processed.
      */
-    private void processRaidsInBatches(final World world) {
-        int processedRaids = 0;
+    private void processRaidsInBatches() {
+        int processedCount = 0;
 
-        while (processedRaids < maxRaidsPerTick && raidIndex < currentRaids.size()) {
-            registerRaid(currentRaids.get(raidIndex));
-            raidIndex++;
-            processedRaids++;
+        while (processedCount < maxRaidsPerTick && !raidQueue.isEmpty()) {
+            final Raid raid = raidQueue.poll();
+            if (raid != null && raid.isStarted()) {
+                registerRaid(raid);
+                processedCount++;
+            }
         }
 
-        if (raidIndex < currentRaids.size()) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> processRaidsInBatches(world), 1L);
-        } else {
-            processingWorlds.remove(world);
+        if (!raidQueue.isEmpty()) {
+            Bukkit.getScheduler().runTaskLater(plugin, this::processRaidsInBatches, 1L);
         }
     }
 

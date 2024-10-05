@@ -23,15 +23,13 @@ import java.util.logging.Logger;
  */
 public class RaidScheduler {
 
-    private final JavaPlugin plugin;             // Reference to the plugin instance
-    private final RaidManager raidManager;       // Manages raid data and maps across worlds
-    private final Config config;                 // Plugin configuration object
-    private final Logger logger;                 // Logger for debug information
+    private final JavaPlugin plugin;                 // Reference to the plugin instance
+    private final RaidManager raidManager;           // Manages raid data and maps across worlds
 
-    private final RaidStateManager raidStateManager;   // Manages and updates the state of raids
-    private final Queue<RaidData> raidDataQueue; // Queue that stores raids awaiting processing
-    private final Set<World> worldsToCheck;       // Set of worlds where raids will be checked
-    private final int maxRaidsPerTick;           // Maximum number of raid checks to perform in a single tick
+    private final RaidStateManager raidStateManager; // Manages and updates the state of raids
+    private final Queue<RaidData> raidDataQueue;     // Queue that stores raids awaiting processing
+    private final Set<World> worldsToCheck;          // Set of worlds where raids will be checked
+    private final int maxRaidsPerTick;               // Maximum number of raid checks to perform in a single tick
 
     /**
      * Constructs the {@link RaidScheduler} for periodical raids states updates
@@ -45,8 +43,6 @@ public class RaidScheduler {
                          final Config config, final Logger logger) {
         this.plugin = plugin;
         this.raidManager = raidManager;
-        this.config = config;
-        this.logger = logger;
 
         raidStateManager = new RaidStateManager(config, logger);
         raidDataQueue = new LinkedList<>();
@@ -104,7 +100,7 @@ public class RaidScheduler {
         int processedCount = 0;
 
         while (processedCount < maxRaidsPerTick && !raidDataQueue.isEmpty()) {
-            final RaidData raidData = raidDataQueue.peek();
+            final RaidData raidData = raidDataQueue.poll();
             updateRaidState(raidData);
             processedCount++;
         }

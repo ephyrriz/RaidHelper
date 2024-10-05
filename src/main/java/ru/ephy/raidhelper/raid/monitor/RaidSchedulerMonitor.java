@@ -15,16 +15,13 @@ import java.util.*;
  */
 public class RaidSchedulerMonitor {
 
-    private final JavaPlugin plugin;           // Plugin instance for scheduling tasks
-    private final RaidManager raidManager;     // Manages raid registration
-    private final Config config;               // Configuration settings
+    private final JavaPlugin plugin;              // Plugin instance for scheduling tasks
+    private final RaidManager raidManager;        // Manages raid registration
+    private final Config config;                  // Configuration settings
 
-    private final List<Raid> currentRaids;     // List of active raids in the current world
-    private final Set<World> processingWorlds; // Worlds currently being processed
-    private final Set<World> monitoredWorlds;  // Worlds being monitored for raids
-    private final int maxRaidsPerTick;         // Maximum number of raids processed per tick
-
-    private int currentRaidIndex = 0;          // Index of the current raid being processed
+    private final Queue<Raid> raidQueue;          // List of active raids in the current world
+    private final Set<World> monitoredWorlds;     // Worlds being monitored for raids
+    private final int maxRaidsPerTick;            // Maximum number of raids processed per tick
 
     /**
      * Constructs a {@link  RaidSchedulerMonitor} to monitor and process raids.
@@ -42,8 +39,7 @@ public class RaidSchedulerMonitor {
         monitoredWorlds = config.getWorldSet();
         maxRaidsPerTick = config.getMaxChecksPerTick();
 
-        currentRaids = new ArrayList<>();
-        processingWorlds = new HashSet<>();
+        raidQueue = new LinkedList<>();
     }
 
     /**
@@ -65,39 +61,36 @@ public class RaidSchedulerMonitor {
      */
     private void checkRaidsInWorlds() {
         for (final World world : monitoredWorlds) {
-
-            if (!processingWorlds.contains(world)) {
-                currentRaids.clear();
-                currentRaids.addAll(world.getRaids());
-
-                if (!currentRaids.isEmpty()) {
-                    currentRaidIndex = 0;
-                    processingWorlds.add(world);
-                    processRaidsInWorld(world);
+            for (final Raid raid : world.getRaids()) {
+                if (!raidQueue.contains(raid) && !raidManager.isRaidRegisteredInMap(raid)) {
+                    raidQueue.offer(raid);
                 }
             }
+        }
+
+        if (!raidQueue.isEmpty()) {
+            processRaidsInWorld();
         }
     }
 
     /**
      * Loads the active raids in the specified world
      * and processes them in manageable batches.
-     *
-     * @param world The world to check for active raids
      */
-    private void processRaidsInWorld(final World world) {
-        int processedCount = 0; // Track how many raids have been processed
+    private void processRaidsInWorld() {
+        int processedCount = 0;
 
-        while (processedCount < maxRaidsPerTick && currentRaidIndex < currentRaids.size()) {
-            registerRaid(currentRaids.get(currentRaidIndex));
-            currentRaidIndex++;
-            processedCount++;
+        while (processedCount < maxRaidsPerTick && !raidQueue.isEmpty()) {
+            final Raid raid = raidQueue.poll();
+
+            if (raid != null && raid.isStarted()) {
+                registerRaid(raidQueue.poll());
+                processedCount++;
+            }
         }
 
-        if (currentRaidIndex < currentRaids.size()) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> processRaidsInWorld(world), 1L);
-        } else {
-            processingWorlds.remove(world);
+        if (!raidQueue.isEmpty()) {
+            Bukkit.getScheduler().runTaskLater(plugin, this::processRaidsInWorld, 1L);
         }
     }
 
@@ -108,5 +101,9 @@ public class RaidSchedulerMonitor {
      */
     private void registerRaid(final Raid raid) {
         raidManager.registerRaidIfAbsent(raid);
+    }
+
+    private void isRaidValid(final Raid raid) {
+        raidManager.isRaidRegisteredInMap(raid);
     }
 }
