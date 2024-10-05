@@ -56,10 +56,10 @@ public class RaidData {
         return "\nRaidData{" +
                 "raidId=" + raidId +
                 ", raid=" + raid +
-                ", location=" + location +
-                ", world=" + world +
-                ", ringable=" + canTeleport +
-                ", inCooldown=" + onCooldown +
+                ", location=" + location.toString() +
+                ", world=" + world.getName() +
+                ", canTeleport=" + canTeleport +
+                ", onCooldowwn=" + onCooldown +
                 ", canResetCounter=" + canResetCounter +
                 ", counter=" + counter +
                 '}';
