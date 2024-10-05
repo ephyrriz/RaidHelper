@@ -12,178 +12,168 @@ import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidData;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * Handles the teleportation of raiders when a
- * bell is rung during a raid. The class manages
- * teleportation range, delay, and cooldown periods.
+ * Manages teleportation of raiders when a bell is rung during a raid.
+ * Handles range, delay, cooldowns, and triggers teleportation.
  */
 public class Teleporter {
 
-    private final JavaPlugin plugin;             // Plugin's instance
-    private final RaidManager raidManager;       // Manages the raids map
-    private final TeleporterPool teleporterPool; // Teleporter pool
-    private final Logger logger;                 // Logger for debugging
+    private final JavaPlugin plugin;         // Plugin instance for scheduling
+    private final RaidManager raidManager;   // Manages active raids
+    private final TeleporterPool pool;       // Pool of reusable teleporters
+    private final Logger logger;             // Logger for messages
 
-    private final Component cooldownMessage;     // Cooldown message
-    private final Component someCooldownMessage; // Some raids in cooldown message
-    private final double rangeSquared;           // Range; radius; squared
-    private final int cooldown;                  // Raid's cooldown before it can teleport raiders again
-    private final int teleportDelay;             // Teleport delay; after how many ticks raiders will be teleported
-    private final int height;                    // Height above the bell where raiders will be teleported to
+    private final Component cooldownMsg;     // Message shown when raid is on cooldown
+    private final Component partialCooldownMsg; // Message for partial cooldowns
+    private final double rangeSquared;       // Effective teleport range (squared)
+    private final int cooldownTime;          // Cooldown duration (ticks)
+    private final int delay;                 // Delay before teleport (ticks)
+    private final int heightOffset;          // Height offset for teleport location
 
     /**
-     * Constructs the {@link Teleporter} class.
+     * Initializes the Teleporter instance.
      *
-     * @param plugin      The Plugin's instance for schedulers
-     * @param raidManager The Raid Manager used to access raid data
-     * @param config      The Config's instance for initializing needed variables
-     * @param logger      Logger for logging messages
+     * @param plugin      The main plugin instance for tasks
+     * @param pool        Teleporter pool to manage instances
+     * @param raidManager Raid data manager
+     * @param config      Configuration settings
+     * @param logger      Logger for debugging and info
      */
-    public Teleporter(final JavaPlugin plugin, final TeleporterPool teleporterPool,
+    public Teleporter(final JavaPlugin plugin, final TeleporterPool pool,
                       final RaidManager raidManager, final Config config, final Logger logger) {
         this.plugin = plugin;
-        this.teleporterPool = teleporterPool;
+        this.pool = pool;
         this.raidManager = raidManager;
         this.logger = logger;
 
-        cooldownMessage = config.getCooldownMessage();
-        someCooldownMessage = config.getSomeInCooldownMessage();
-        rangeSquared = Math.pow(config.getRadius(), 2);
-        cooldown = config.getBellCooldown();
-        teleportDelay = config.getTeleportDelay();
-        height = config.getHeight();
+        cooldownMsg = config.getCooldownMessage();
+        partialCooldownMsg = config.getSomeInCooldownMessage();
+        rangeSquared = Math.pow(config.getRadius(), 2); // Calculate range squared
+        cooldownTime = config.getBellCooldown();
+        delay = config.getTeleportDelay();
+        heightOffset = config.getHeight();
     }
 
+
     /**
-     * Handles the teleport operation.
+     * Initiates raider teleportation when a bell is rung.
      *
-     * @param player        The player who rang the bell
-     * @param bellWorld     Rung bell world
-     * @param bellLocation  Rung bell location
+     * @param player           The player who triggered the bell
+     * @param bellWorld        World where the bell was rung
+     * @param bellLocation     Bell's location
      */
     public void handleTeleport(final Player player, final World bellWorld, final Location bellLocation) {
-        processRaidData(player, bellWorld, bellLocation);
+        processRaid(player, bellWorld, bellLocation);
     }
 
     /**
-     * Processes the raid data of the bell world;
-     * iterates its values (raidData) and checks their
-     * cooldown status.
+     * Processes all raids in the specified world,
+     * checking cooldowns and triggering teleportation.
      *
-     * @param player        The player who rang the bell
-     * @param bellWorld     Bell's world to retrieve the needed map of raids
-     * @param bellLocation  Bell's location to compare against
+     * @param player           The player who rang the bell
+     * @param bellWorld        The world to search for raids
+     * @param bellLocation     The bell's location
      */
-    private void processRaidData(final Player player, final World bellWorld, final Location bellLocation) {
+    private void processRaid(final Player player, final World bellWorld, final Location bellLocation) {
         final Map<Integer, RaidData> integerRaidMap = raidManager.getWorldRaidMap().get(bellWorld);
-        if (integerRaidMap == null || integerRaidMap.isEmpty()) return;
+        if (integerRaidMap == null || integerRaidMap.isEmpty()) {
+            logger.warning("The integerRaidMap is null or empty. Cannot process it.");
+            return;
+        }
 
-        boolean allInCooldown = true;   // If all raids are in cooldown
-        boolean someInCooldown = false; // If some of raids are not in cooldown
+        boolean allOnCooldown = true;   // If all raids are in cooldown
+        boolean someOnCooldown = false; // If some of raids are not in cooldown
 
         for (final RaidData raidData : integerRaidMap.values()) {
-            if (raidData.isInCooldown()) {
-                someInCooldown = true;
+            if (raidData.isOnCooldown()) {
+                someOnCooldown = true;
             } else {
-                allInCooldown = false;
-                if (raidData.isRingable()) {
-                    checkAndTeleportRaiders(raidData, bellLocation);
-                    manageRaidCooldown(raidData);
+                allOnCooldown = false;
+                if (raidData.isCanTeleport() && isWithinRange(raidData.getLocation(), bellLocation)) {
+                    teleportEligibleRaiders(raidData, bellLocation);
+                    setRaidCooldown(raidData);
+                    pool.release(this);
                 }
             }
         }
 
-        notifyPlayerAboutCooldown(player, allInCooldown, someInCooldown);
+        sendCooldownMessage(player, allOnCooldown, someOnCooldown);
     }
 
     /**
-     * Notifies the player about cooldown status.
+     * Teleports raiders from eligible raids near the bell location.
      *
-     * @param player         Player to whom the message will be sent
-     * @param allInCooldown  All raids are in cooldown
-     * @param someInCooldown Some raids are not in cooldown
+     * @param raidData      Raid instance containing raiders
+     * @param bellLocation  Bell's location to compare distance
      */
-    private void notifyPlayerAboutCooldown(final Player player, final boolean allInCooldown, final boolean someInCooldown) {
-        if (allInCooldown) {
-            player.sendMessage(cooldownMessage);
-        } else if (someInCooldown) {
-            player.sendMessage(someCooldownMessage);
-        }
+    private void teleportEligibleRaiders(final RaidData raidData, final Location bellLocation) {
+        final Location targetLocation = bellLocation.clone().add(0, heightOffset, 0);
+        scheduleRaiderTeleport(raidData.getRaid(), targetLocation);
     }
 
     /**
-     * Manages cooldown of the RaidData.
+     * Checks if the raid's location is within the bell's teleport range.
      *
-     * @param raidData RaidData to control cooldown
+     * @param raidLocation  The location of the raid
+     * @param bellLocation  The location of the bell
+     * @return true if within range, false otherwise
      */
-    private void manageRaidCooldown (final RaidData raidData) {
-        raidData.setInCooldown(true);
-        Bukkit.getScheduler().runTaskLater(plugin, () -> raidData.setInCooldown(false), cooldown);
-    }
-
-
-    /**
-     * Checks if the raid is within range of the bell's location
-     * and teleports raiders if it is.
-     *
-     * @param raidData      RaidData to retrieve location
-     * @param bellLocation  Bell's location to compare against
-     */
-    private void checkAndTeleportRaiders(final RaidData raidData, final Location bellLocation) {
-        if (isWithinTheRaidRange(raidData.getLocation(), bellLocation)) {
-            final Location targetLocation = bellLocation.clone().add(0, height, 0);
-            scheduleTeleportRaiders(raidData.getRaid(), targetLocation);
-        }
-    }
-
-    /**
-     * Verifies if the distance between bell's and raid's locations
-     * is within the squared range.
-     *
-     * @param raidLocation Raid's location
-     * @param bellLocation Bell's location
-     * @return true if the distance is within the range, false otherwise
-     */
-    private boolean isWithinTheRaidRange(final Location raidLocation, final Location bellLocation) {
+    private boolean isWithinRange(final Location raidLocation, final Location bellLocation) {
         return raidLocation.distanceSquared(bellLocation) < rangeSquared;
     }
 
     /**
-     * Schedules raiders teleport after a delay.
+     * Schedules the teleportation of raiders after a specified delay.
      *
-     * @param raid           Raid to get raiders from
-     * @param targetLocation Target location for teleporting raiders
+     * @param raid           The raid entity to teleport raiders from
+     * @param targetLocation The target teleportation location
      */
-    private void scheduleTeleportRaiders(final Raid raid, final Location targetLocation) {
+    private void scheduleRaiderTeleport(final Raid raid, final Location targetLocation) {
         if (raid == null || targetLocation == null) {
             logger.warning("Raid or target location is null. Cannot schedule teleport.");
             return;
         }
 
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            final List<Raider> raiderList = raid.getRaiders();
-
-            if (!raiderList.isEmpty()) {
-                for (final Raider raider : raiderList) {
-                    teleportRaider(raider, targetLocation);
-                }
-            }
-        }, teleportDelay);
-
-        teleporterPool.releaseHandler(this);
+        Bukkit.getScheduler().runTaskLater(plugin, () ->
+                raid.getRaiders().forEach(raider -> teleport(raider, targetLocation)), delay);
     }
 
     /**
-     * Teleports a raider to the target location.
+     * Teleports an individual raider to the target location.
      *
-     * @param raider         Raider entity
-     * @param targetLocation Target location for teleporting the raider
+     * @param raider         The raider entity to teleport
+     * @param targetLocation The destination location
      */
-    private void teleportRaider(final Raider raider, final Location targetLocation) {
+    private void teleport(final Raider raider, final Location targetLocation) {
         raider.teleport(targetLocation);
+    }
+
+    /**
+     * Puts the raid into cooldown mode after teleporting raiders.
+     *
+     * @param raidData Raid to put on cooldown
+     */
+    private void setRaidCooldown(final RaidData raidData) {
+        raidData.setOnCooldown(true);
+        Bukkit.getScheduler().runTaskLater(plugin, () ->
+                raidData.setOnCooldown(false), cooldownTime);
+    }
+
+    /**
+     * Sends cooldown messages to the player based on the raid's cooldown status.
+     *
+     * @param player        The player to notify
+     * @param allOnCooldown Whether all raids are in cooldown
+     * @param someOnCooldown Whether some raids are in cooldown
+     */
+    private void sendCooldownMessage(final Player player, final boolean allOnCooldown, final boolean someOnCooldown) {
+        if (allOnCooldown) {
+            player.sendMessage(cooldownMsg);
+        } else if (someOnCooldown) {
+            player.sendMessage(partialCooldownMsg);
+        }
     }
 }

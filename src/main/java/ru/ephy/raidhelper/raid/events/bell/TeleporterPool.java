@@ -43,7 +43,7 @@ public class TeleporterPool {
         if (!pool.isEmpty()) {
             return pool.poll();
         }
-        return new Teleporter(plugin, raidManager, config, logger);
+        return new Teleporter(plugin, this, raidManager, config, logger);
     }
 
     /**
@@ -51,7 +51,7 @@ public class TeleporterPool {
      *
      * @param teleporter The used Teleporter
      */
-    public void releaseHandler(final Teleporter teleporter) {
+    public void release(final Teleporter teleporter) {
         if (pool.size() < poolMaxSize) {
             pool.offer(teleporter);
         }

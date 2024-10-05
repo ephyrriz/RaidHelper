@@ -68,7 +68,7 @@ public class RaidStateManager {
     private void handleWaveEnd(final RaidData raidData) {
         if (!raidData.isCanResetCounter()) {
             raidData.setCanResetCounter(true);
-            raidData.setRingable(false);
+            raidData.setCanTeleport(false);
             raidData.resetCounter();
         }
     }
@@ -97,8 +97,8 @@ public class RaidStateManager {
      * @param raidData RaidData to update
      */
     private void updateRingableState(final RaidData raidData) {
-        if (!raidData.isRingable()) {
-            raidData.setRingable(true);
+        if (!raidData.isCanTeleport()) {
+            raidData.setCanTeleport(true);
         }
         sendActionBarMessage(raidData);
     }
