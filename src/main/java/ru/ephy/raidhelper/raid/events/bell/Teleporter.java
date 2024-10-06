@@ -78,7 +78,7 @@ public class Teleporter {
      * @param bellLocation     The bell's location
      */
     private void processRaid(final Player player, final World bellWorld, final Location bellLocation) {
-        final Map<Integer, RaidData> integerRaidMap = raidManager.getWorldRaidMap().get(bellWorld);
+        final Map<Integer, RaidData> integerRaidMap = raidManager.getActiveRaidsByWorld().get(bellWorld);
         if (integerRaidMap == null || integerRaidMap.isEmpty()) {
             logger.warning("The integerRaidMap is null or empty. Cannot process it.");
             return;
@@ -88,7 +88,7 @@ public class Teleporter {
         boolean someOnCooldown = false; // If some of raids are not in cooldown
 
         for (final RaidData raidData : integerRaidMap.values()) {
-            if (raidData.isOnCooldown()) {
+            if (raidData.isCooldownActive()) {
                 someOnCooldown = true;
             } else {
                 allOnCooldown = false;
@@ -157,9 +157,9 @@ public class Teleporter {
      * @param raidData Raid to put on cooldown
      */
     private void setRaidCooldown(final RaidData raidData) {
-        raidData.setOnCooldown(true);
+        raidData.setCooldownActive(true);
         Bukkit.getScheduler().runTaskLater(plugin, () ->
-                raidData.setOnCooldown(false), cooldownTime);
+                raidData.setCooldownActive(false), cooldownTime);
     }
 
     /**

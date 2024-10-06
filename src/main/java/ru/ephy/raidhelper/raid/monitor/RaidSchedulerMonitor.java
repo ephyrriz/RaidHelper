@@ -16,78 +16,89 @@ import java.util.logging.Logger;
  */
 public class RaidSchedulerMonitor {
 
-    private final JavaPlugin plugin;              // Plugin instance for scheduling tasks
-    private final RaidManager raidManager;        // Manages raid registration
-    private final Config config;                  // Configuration settings
-    private final Logger logger;                  // Logger for debugging
+    private final JavaPlugin plugin;           // Plugin instance for task scheduling
+    private final RaidManager raidManager;     // Manages raid registrations
+    private final Logger logger;               // Logger for debugging
 
-    private final Queue<Raid> raidQueue;          // List of active raids in the current world
-    private final Set<World> monitoredWorlds;     // Worlds being monitored for raids
-    private final int maxRaidsPerTick;            // Maximum number of raids processed per tick
+    private final Queue<Raid> raidQueue;       // Queue of active raids to process
+    private final Set<World> monitoredWorlds;  // Worlds currently monitored for raids
+    private final int raidBatchLimit;          // Max number of raids processed per update
+
+    private int taskId = -1;                   // Task ID for the scheduler
 
     /**
-     * Constructs a {@link  RaidSchedulerMonitor} to monitor and process raids.
+     * Initializes the RaidMonitor to track and process raids.
      *
      * @param plugin       The JavaPlugin instance
      * @param raidManager  The RaidManager instance
      * @param config       The Config instance for settings
+     * @param logger       The Logger instance for logging
      */
     public RaidSchedulerMonitor(final JavaPlugin plugin, final RaidManager raidManager,
                                 final Config config, final Logger logger) {
+        // Initialize required instances
         this.plugin = plugin;
         this.raidManager = raidManager;
-        this.config = config;
         this.logger = logger;
 
+        // Initialize required variables
         monitoredWorlds = config.getValidWorlds();
-        maxRaidsPerTick = config.getMaxChecksPerTick();
+        raidBatchLimit = config.getMaxChecksPerTick();
 
         raidQueue = new LinkedList<>();
 
+        // Start the scheduler
         Bukkit.getScheduler().runTaskTimer(
                 plugin,
-                this::checkRaidsInWorlds,
+                this::scanWorldsForRaids,
                 0L,
                 config.getWorldCheckFrequency());
     }
 
     /**
-     * Checks all monitored worlds for active raids
-     * and initiates processing if any are found.
+     * Scans all monitored worlds for active
+     * raids and enqueues them for processing.
      */
-    private void checkRaidsInWorlds() {
+    private void scanWorldsForRaids() {
         for (final World world : monitoredWorlds) {
             for (final Raid raid : world.getRaids()) {
-                if (!raidQueue.contains(raid) && !raidManager.isRaidRegisteredInMap(raid)) {
+                if (!raidQueue.contains(raid) && !raidManager.isRaidRegistered(raid)) {
                     raidQueue.offer(raid);
                 }
             }
         }
 
         if (!raidQueue.isEmpty()) {
-            processRaidsInWorld();
+            if (taskId == -1) {
+                taskId = Bukkit.getScheduler().runTaskTimer(
+                        plugin,
+                        this::processRaids,
+                        0L,
+                        1L
+                ).getTaskId();
+            } else {
+                logger.warning("Cannot scan raids because the scheduler is busy. TaskId: " + taskId);
+            }
         }
     }
 
     /**
-     * Loads the active raids in the specified world
-     * and processes them in manageable batches.
+     * Processes active raids in manageable batches.
      */
-    private void processRaidsInWorld() {
+    private void processRaids() {
         int processedCount = 0;
 
-        while (processedCount < maxRaidsPerTick && !raidQueue.isEmpty()) {
+        while (processedCount < raidBatchLimit && !raidQueue.isEmpty()) {
             final Raid raid = raidQueue.poll();
-            logger.info("Processing Raid: " + (raid != null ? raid.getId() : "null"));
-
             if (raid != null && raid.isStarted()) {
                 registerRaid(raid);
                 processedCount++;
             }
         }
 
-        if (!raidQueue.isEmpty()) {
-            Bukkit.getScheduler().runTaskLater(plugin, this::processRaidsInWorld, 1L);
+        if (raidQueue.isEmpty() && taskId != -1) {
+            Bukkit.getScheduler().cancelTask(taskId);
+            taskId = -1;
         }
     }
 
@@ -97,6 +108,6 @@ public class RaidSchedulerMonitor {
      * @param raid The raid to register
      */
     private void registerRaid(final Raid raid) {
-        raidManager.registerRaidIfAbsent(raid);
+        raidManager.addRaidIfAbsent(raid);
     }
 }

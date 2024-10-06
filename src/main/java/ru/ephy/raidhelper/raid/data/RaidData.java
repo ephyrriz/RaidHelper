@@ -9,59 +9,58 @@ import org.bukkit.Raid;
 import org.bukkit.World;
 
 /**
- * Holds data related to a specific raid, including the raid's location,
- * the world it takes place in, and settings related to raider behavior
- * (e.g., teleportation when the bell rings). This class also tracks time
- * via a counter, which can be reset or incremented.
+ * Represents data associated with a specific raid,
+ * including its location, world, and raider behavior settings.
+ * Tracks a time counter which can be incremented or reset.
  */
 @Getter
 @NonNull
 @RequiredArgsConstructor
 public class RaidData {
 
-    private final int raidId;                // The associated Raid's id
-    private final Raid raid;                 // The associated Raid instance
-    private final Location location;         // The location where the raid is occurring
-    private final World world;               // The world in which the raid is taking place
+    private final int raidId;                       // Unique identifier for the raid
+    private final Raid raidInstance;                // Reference to the Raid instance
+    private final Location raidLocation;            // Location where the raid is occurring
+    private final World raidWorld;                  // World in which the raid takes place
 
     @Setter
-    private boolean canTeleport = false;     // Determines if raiders can teleport when the bell rings
+    private boolean teleportEnabled = false;      // Allows raiders to teleport when the bell rings
     @Setter
-    private boolean onCooldown = false;      // If true, the raid is in cooldown and won't teleport raiders
+    private boolean cooldownActive = false;       // Indicates if the raid is in cooldown
     @Setter
-    private boolean canResetCounter = false; // If false, prevents the counter from being reset
-    private int counter = 0;                 // Tracks time (in ticks) since the raid was initialized or reset
+    private boolean counterResetAllowed = false;  // Prevents counter reset if false
+    private int tickCounter = 0;                    // Tracks time (in ticks) since the raid started or was reset
 
     /**
-     * Increments the counter by 1.
+     * Increments the tick counter by one.
      */
     public void incrementCounter() {
-        counter++;
+        tickCounter++;
     }
 
     /**
-     * Resets the counter to 0.
+     * Resets the tick counter to zero.
      */
     public void resetCounter() {
-        counter = 0;
+        tickCounter = 0;
     }
 
     /**
-     * For debug purposes only.
+     * Provides a string representation of RaidData for debugging.
      *
-     * @return Returns all values of the RaidData.
+     * @return A string with the values of RaidData.
      */
     @Override
     public String toString() {
-        return "\nRaidData{" +
-                "raidId=" + raidId +
-                ", raid=" + raid +
-                ", location=" + location.toString() +
-                ", world=" + world.getName() +
-                ", canTeleport=" + canTeleport +
-                ", onCooldowwn=" + onCooldown +
-                ", canResetCounter=" + canResetCounter +
-                ", counter=" + counter +
+        return "RaidData{" +
+                "id=" + raidId +
+                ", raidInstance=" + raidInstance +
+                ", raidLocation=" + raidLocation +
+                ", raidWorld=" + raidWorld +
+                ", isTeleportEnabled=" + teleportEnabled +
+                ", isCooldownActive=" + cooldownActive +
+                ", isCounterResetAllowed=" + counterResetAllowed +
+                ", tickCounter=" + tickCounter +
                 '}';
     }
 }

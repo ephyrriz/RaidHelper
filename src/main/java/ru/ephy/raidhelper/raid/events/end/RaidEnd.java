@@ -44,6 +44,6 @@ public class RaidEnd implements Listener {
      * @param raid The raid instance to be removed.
      */
     private void removeRaid(final Raid raid) {
-        raidManager.unregisterRaidIfPresent(raid);
+        raidManager.removeRaidIfPresent(raid);
     }
 }

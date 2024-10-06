@@ -13,25 +13,26 @@ import ru.ephy.raidhelper.raid.data.RaidManager;
 import java.util.*;
 
 /**
- * Monitors raid-related events and processes active raids
- * by registering them in the RaidManager.
+ * Listens for and processes raid-related events,
+ * handling the registration of active raids using the RaidManager.
  */
 public class RaidEventMonitor implements Listener {
 
-    private final JavaPlugin plugin;            // Plugin instance for scheduling
-    private final RaidManager raidManager;      // Manages raid registration
+    private final JavaPlugin plugin;          // Plugin instance for scheduling tasks
+    private final RaidManager raidManager;    // Manages raid-related operations
 
-    private final Queue<Raid> raidQueue;        // List of active raids in the current world
-    private final Set<World> processingWorlds;  // Tracks worlds currently processing raids
-    private final Set<World> monitoredWorlds;   // Worlds to be monitored for active raids
-    private final int maxRaidsPerTick;          // Maximum number of raids processed per tick
+    private final Queue<Raid> raidQueue;      // Queue for raids being processed
+    private final Set<World> monitoredWorlds; // Worlds that are monitored for raid activity
+    private final int raidBatchLimit;         // Maximum number of raids processed per tick
+
+    private int taskId = -1;                  // Task ID for the scheduler
 
     /**
-     * Constructs the {@link RaidEventMonitor} for managing raid events.
+     * Initializes the RaidEventMonitor to listen and handle raid events.
      *
-     * @param plugin       JavaPlugin instance
-     * @param raidManager  Manages raid operations
-     * @param config       Config instance for retrieving settings
+     * @param plugin     Main plugin instance
+     * @param raidManager    RaidManager responsible for handling raid registration
+     * @param config     Config object to retrieve world and raid processing settings
      */
     public RaidEventMonitor(final JavaPlugin plugin, final RaidManager raidManager,
                             final Config config) {
@@ -39,52 +40,59 @@ public class RaidEventMonitor implements Listener {
         this.raidManager = raidManager;
 
         monitoredWorlds = config.getValidWorlds();
-        maxRaidsPerTick = config.getMaxChecksPerTick();
+        raidBatchLimit = config.getMaxChecksPerTick();
 
         raidQueue = new LinkedList<>();
-        processingWorlds = new HashSet<>();
     }
 
     /**
-     * Handles the event when a raid is triggered,
-     * finished, stopped, or when a new wave spawns.
+     * Handles any raid-related event by
+     * scanning the world for raids.
      *
-     * @param event RaidEvent
+     * @param event Raid-related event
      */
     @EventHandler
-    public void on(final RaidEvent event) { scanWorldForRaids(event.getWorld()); }
+    public void on(final RaidEvent event) { scanWorldsForRaids(event.getWorld()); }
 
     /**
-     * Scans all monitored worlds for active raids.
+     * Checks the provided world for active raids
+     * if it's in the monitored list.
      *
-     * @param world World where the event occured
+     * @param world World where the event occurred
      */
-    private void scanWorldForRaids(final World world) {
+    private void scanWorldsForRaids(final World world) {
         if (monitoredWorlds.contains(world)) {
-            processWorldRaids(world);
+            processRaidsInWorld(world);
         }
     }
 
     /**
-     * Checks a world for active raids and processes them.
+     * Adds active raids from the specified
+     * world to the queue for processing.
      *
-     * @param world The world to check for raids.
+     * @param world World to scan for raids
      */
-    private void processWorldRaids(final World world) {
+    private void processRaidsInWorld(final World world) {
         raidQueue.addAll(world.getRaids());
 
-        if (!raidQueue.isEmpty()) {
-            processRaidsInBatches();
+        if (!raidQueue.isEmpty() && taskId == -1) {
+            taskId = Bukkit.getScheduler().runTaskTimer(
+                    plugin,
+                    this::processRaidsInBatches,
+                    0L,
+                    1L
+            ).getTaskId();
         }
     }
 
     /**
-     * Processes raids in batches, limiting the number per tick.
+     * Processes raids in the queue in batches,
+     * limiting the number per tick.
      */
     private void processRaidsInBatches() {
         int processedCount = 0;
 
-        while (processedCount < maxRaidsPerTick && !raidQueue.isEmpty()) {
+        while (processedCount < raidBatchLimit && !raidQueue.isEmpty()) {
             final Raid raid = raidQueue.poll();
             if (raid != null && raid.isStarted()) {
                 registerRaid(raid);
@@ -92,17 +100,19 @@ public class RaidEventMonitor implements Listener {
             }
         }
 
-        if (!raidQueue.isEmpty()) {
-            Bukkit.getScheduler().runTaskLater(plugin, this::processRaidsInBatches, 1L);
+        if (raidQueue.isEmpty() && taskId != -1) {
+            Bukkit.getScheduler().cancelTask(taskId);
+            taskId = -1;
         }
     }
 
     /**
-     * Registers a raid with the RaidManager if it is not already registered.
+     * Registers the raid in the RaidManager if
+     * it's not already registered.
      *
      * @param raid The raid to register
      */
     private void registerRaid(final Raid raid) {
-        raidManager.registerRaidIfAbsent(raid);
+        raidManager.addRaidIfAbsent(raid);
     }
 }

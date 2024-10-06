@@ -67,7 +67,7 @@ public class RaidScheduler {
      */
     private void checkActiveRaids() {
         for (final World world : worldsToCheck) {
-            final Map<Integer, RaidData> raidDataMap = raidManager.getWorldRaidMap().get(world);
+            final Map<Integer, RaidData> raidDataMap = raidManager.getActiveRaidsByWorld().get(world);
 
             if (raidDataMap != null) {
                 for (final RaidData raidData : raidDataMap.values()) {
