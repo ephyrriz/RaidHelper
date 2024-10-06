@@ -68,15 +68,15 @@ public class RaidStateManager {
      * @param raidData RaidData instance to update
      */
     private void handleWaveEnd(final RaidData raidData) {
-        if (!raidData.isCanResetCounter()) {
-            logger.info("DEBUG-B: The flag can reset is false for " + raidData.toString() + ". Modifying values.");
-            raidData.setCanResetCounter(true);
+        if (raidData.isCanResetCounter()) {
+            logger.info("DEBUG-B: The flag can reset is true for " + raidData.toString() + ". Modifying values.");
+            raidData.setCanResetCounter(false);
             raidData.setCanTeleport(false);
             raidData.resetCounter();
             logger.info("DEBUG-B: Modification has ended. New values - " + raidData.toString());
             return;
         }
-        logger.info("DEBUG-B: The flag can reset is true for " + raidData.toString());
+        logger.info("DEBUG-B: The flag can reset is false for " + raidData.toString());
     }
 
     /**
@@ -86,12 +86,12 @@ public class RaidStateManager {
      * @param raidData RaidData instance to update
      */
     private void handleOngoingWave(final RaidData raidData) {
-        if (raidData.isCanResetCounter()) {
-            logger.info("DEBUG-C: The flag can reset is true for " + raidData.toString() + ". Modifying values.");
-            raidData.setCanResetCounter(false);
+        if (!raidData.isCanResetCounter()) {
+            logger.info("DEBUG-C: The flag can reset is false for " + raidData.toString() + ". Modifying values.");
+            raidData.setCanResetCounter(true);
             logger.info("DEBUG-C: Modification has ended. New values - " + raidData.toString());
         } else {
-            logger.info("DEBUG-C: The flag can reset is false for " + raidData.toString());
+            logger.info("DEBUG-C: The flag can reset is true for " + raidData.toString());
         }
 
         if (raidData.getCounter() > cooldownTicks) {
@@ -132,7 +132,7 @@ public class RaidStateManager {
         final Collection<Player> nearbyPlayers = raidData.getLocation().getNearbyPlayers(notificationRadius);
 
         for (final Player player : nearbyPlayers) {
-            player.sendMessage(message);
+            player.sendActionBar(message);
         }
     }
 }
