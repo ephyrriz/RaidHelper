@@ -38,7 +38,7 @@ public class RaidEventMonitor implements Listener {
         this.plugin = plugin;
         this.raidManager = raidManager;
 
-        monitoredWorlds = config.getWorldSet();
+        monitoredWorlds = config.getValidWorlds();
         maxRaidsPerTick = config.getMaxChecksPerTick();
 
         raidQueue = new LinkedList<>();

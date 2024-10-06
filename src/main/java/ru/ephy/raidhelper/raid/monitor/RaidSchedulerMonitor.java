@@ -39,18 +39,11 @@ public class RaidSchedulerMonitor {
         this.config = config;
         this.logger = logger;
 
-        monitoredWorlds = config.getWorldSet();
+        monitoredWorlds = config.getValidWorlds();
         maxRaidsPerTick = config.getMaxChecksPerTick();
 
         raidQueue = new LinkedList<>();
-    }
 
-    /**
-     * Starts the raid monitoring scheduler.
-     * Periodically checks specified worlds for active raids
-     * and processes them to maintain server performance.
-     */
-    public void startMonitor() {
         Bukkit.getScheduler().runTaskTimer(
                 plugin,
                 this::checkRaidsInWorlds,
@@ -105,9 +98,5 @@ public class RaidSchedulerMonitor {
      */
     private void registerRaid(final Raid raid) {
         raidManager.registerRaidIfAbsent(raid);
-    }
-
-    private void isRaidValid(final Raid raid) {
-        raidManager.isRaidRegisteredInMap(raid);
     }
 }

@@ -49,8 +49,8 @@ public class Teleporter {
         this.raidManager = raidManager;
         this.logger = logger;
 
-        cooldownMsg = config.getCooldownMessage();
-        partialCooldownMsg = config.getSomeInCooldownMessage();
+        cooldownMsg = config.getCooldownWarning();
+        partialCooldownMsg = config.getSomeInCooldownWarning();
         rangeSquared = Math.pow(config.getRadius(), 2); // Calculate range squared
         cooldownTime = config.getBellCooldown();
         delay = config.getTeleportDelay();

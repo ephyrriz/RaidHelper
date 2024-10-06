@@ -46,17 +46,9 @@ public class RaidScheduler {
 
         raidStateManager = new RaidStateManager(config, logger);
         raidDataQueue = new LinkedList<>();
-        worldsToCheck = config.getWorldSet();
+        worldsToCheck = config.getValidWorlds();
         maxRaidsPerTick = config.getMaxChecksPerTick();
-    }
 
-    /**
-     * Starts the periodic raid check scheduler.
-     * This method initiates a repeating task that
-     * checks active raids across the defined worlds
-     * every 20 ticks (1 second).
-     */
-    public void startScheduler() {
         Bukkit.getScheduler().runTaskTimer( // Schedule periodic checks on active raids
                 plugin,
                 this::checkActiveRaids,

@@ -41,13 +41,10 @@ public class RaidStateManager {
      */
     public void updateRaidState(final RaidData raidData) {
         if (isWaveEnded(raidData.getRaid())) {
-            logger.info("DEBUG-A: Wave is ended. Handling the Wave End.");
             handleWaveEnd(raidData);
         } else {
-            logger.info("DEBUG-A: Wave is not ended. Handling the Wave Ongoing.");
             handleOngoingWave(raidData);
         }
-        logger.info("DEBUG-E: RaidData - " + raidData.toString());
     }
 
     /**
@@ -58,6 +55,7 @@ public class RaidStateManager {
      * @return True if all raiders are defeated, false otherwise
      */
     private boolean isWaveEnded(final Raid raid) {
+        logger.info("Total health for raid #" + raid.getId() + ": " + raid.getTotalHealth() + ". Is empty? " + raid.getRaiders().isEmpty());
         return raid.getRaiders().isEmpty();
     }
 
@@ -69,14 +67,10 @@ public class RaidStateManager {
      */
     private void handleWaveEnd(final RaidData raidData) {
         if (raidData.isCanResetCounter()) {
-            logger.info("DEBUG-B: The flag can reset is true for " + raidData.toString() + ". Modifying values.");
             raidData.setCanResetCounter(false);
             raidData.setCanTeleport(false);
             raidData.resetCounter();
-            logger.info("DEBUG-B: Modification has ended. New values - " + raidData.toString());
-            return;
         }
-        logger.info("DEBUG-B: The flag can reset is false for " + raidData.toString());
     }
 
     /**
@@ -87,21 +81,13 @@ public class RaidStateManager {
      */
     private void handleOngoingWave(final RaidData raidData) {
         if (!raidData.isCanResetCounter()) {
-            logger.info("DEBUG-C: The flag can reset is false for " + raidData.toString() + ". Modifying values.");
             raidData.setCanResetCounter(true);
-            logger.info("DEBUG-C: Modification has ended. New values - " + raidData.toString());
-        } else {
-            logger.info("DEBUG-C: The flag can reset is true for " + raidData.toString());
         }
 
         if (raidData.getCounter() > cooldownTicks) {
-            logger.info("DEBUG-C: The counter is above the cooldownTicks for " + raidData.toString() + ". Modifying values.");
             updateRingableState(raidData);
-            logger.info("DEBUG-C: Modification has ended. New values - " + raidData.toString());
         } else {
-            logger.info("DEBUG-C: The counter is below the cooldownTicks for " + raidData.toString() + ". Modifying values.");
             raidData.incrementCounter();
-            logger.info("DEBUG-C: Modification has ended. New values - " + raidData.toString());
         }
     }
 
@@ -112,14 +98,9 @@ public class RaidStateManager {
      */
     private void updateRingableState(final RaidData raidData) {
         if (!raidData.isCanTeleport()) {
-            logger.info("DEBUG-D: The flag can teleport is false for " + raidData.toString() + ". Modifying values.");
             raidData.setCanTeleport(true);
-            logger.info("DEBUG-D: Modification has ended. New values - " + raidData.toString());
-        } else {
-            logger.info("DEBUG-D: The flag can teleport is true for " + raidData.toString());
         }
         sendActionBarMessage(raidData);
-        logger.info("DEBUG-D: Sending messages to players.");
     }
 
     /**

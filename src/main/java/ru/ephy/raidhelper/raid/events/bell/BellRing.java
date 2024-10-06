@@ -44,7 +44,7 @@ public class BellRing implements Listener {
         this.raidManager = raidManager;
         this.logger = logger;
 
-        allowedWorlds = config.getWorldSet();
+        allowedWorlds = config.getValidWorlds();
         locationBellMap = new WeakHashMap<>();
 
         teleporterPool = new TeleporterPool(config);

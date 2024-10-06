@@ -14,19 +14,20 @@ import java.util.logging.Logger;
 
 /**
  * Main class for the RaidHelper plugin.
- * Initializes essential components, manages
- * lifecycle events, and starts raid monitoring.
+ * Handles initialization, lifecycle management,
+ * and raid monitoring systems.
  */
 public final class Raidhelper extends JavaPlugin {
 
-    private PluginManager pluginManager; // Plugin manager
-    private RaidManager raidManager;     // Manages active raids
-    private Config config;               // Holds plugin configuration settings
-    private Logger logger;               // Logger for debugging
+    private JavaPlugin plugin;           // Plugin reference
+    private PluginManager pluginManager; // Bukkit plugin manager
+    private RaidManager raidManager;     // Raid management system
+    private Config config;               // Plugin configuration
+    private Logger logger;               // Plugin logger
 
     /**
-     * Called when the plugin is enabled by the server.
-     * Initializes components and registers event listeners.
+     * Called when the plugin is enabled.
+     * Initializes components and starts raid systems.
      */
     @Override
     public void onEnable() {
@@ -36,10 +37,11 @@ public final class Raidhelper extends JavaPlugin {
     }
 
     /**
-     * Initializes core components like logger, config,
+     * Initializes core components like the logger, config,
      * plugin manager, and raid manager.
      */
     private void initializeCoreComponents() {
+        plugin = this;
         logger = getLogger();
         config = initializeConfig();
         pluginManager = getServer().getPluginManager();
@@ -47,20 +49,18 @@ public final class Raidhelper extends JavaPlugin {
     }
 
     /**
-     * Initializes configuration and loads config values.
+     * Loads and returns the configuration settings.
      *
-     * @return A Config object with loaded settings
+     * @return Config object containing plugin settings
      */
     private Config initializeConfig() {
         saveDefaultConfig();
-        config = new Config(this, getConfig(), logger);
-        config.loadConfig();
-        return config;
+        return new Config(plugin, getConfig(), logger);
     }
 
     /**
-     * Starts the appropriate raid monitoring and scheduling
-     * systems based on configuration.
+     * Starts raid monitoring and scheduling systems based on
+     * configuration.
      */
     private void startRaidSystems() {
         startRaidMonitor();
@@ -68,44 +68,43 @@ public final class Raidhelper extends JavaPlugin {
     }
 
     /**
-     * Starts the raid monitoring system based on the
-     * chosen by a user mode.
+     * Starts the appropriate raid monitoring system
+     * based on the selected mode (Scheduler/Event).
      */
     private void startRaidMonitor() {
         switch (config.getRaidCheckMode()) {
-            case SCHEDULER -> new RaidSchedulerMonitor(this, raidManager, config, logger).startMonitor();
-            case EVENT -> pluginManager.registerEvents(new RaidEventMonitor(this, raidManager, config), this);
+            case SCHEDULER -> new RaidSchedulerMonitor(plugin, raidManager, config, logger);
+            case EVENT -> pluginManager.registerEvents(new RaidEventMonitor(plugin, raidManager, config), plugin);
             default -> {
                 logger.warning("Invalid RaidCheckMode. Defaulting to SCHEDULER.");
-                new RaidSchedulerMonitor(this, raidManager, config, logger).startMonitor();
+                new RaidSchedulerMonitor(plugin, raidManager, config, logger);
             }
         }
     }
 
     /**
-     * Starts the raid scheduling system to periodically manage active raids.
+     * Starts a scheduler to periodically manage raids.
      */
     private void startRaidScheduler() {
-        new RaidScheduler(this, raidManager, config, logger).startScheduler();
+        new RaidScheduler(plugin, raidManager, config, logger);
     }
 
     /**
-     * Registers event listeners for bell interactions and raid end events.
+     * Registers event listeners for raid-related events.
      */
     private void registerListeners() {
-        final BellRing bellRing = new BellRing(this, raidManager, config, logger);
+        final BellRing bellRing = new BellRing(plugin, raidManager, config, logger);
         final RaidEnd raidEnd = new RaidEnd(raidManager);
 
-        pluginManager.registerEvents(bellRing, this);
-        pluginManager.registerEvents(raidEnd, this);
+        pluginManager.registerEvents(bellRing, plugin);
+        pluginManager.registerEvents(raidEnd, plugin);
     }
 
     /**
-     * Called when the plugin is disabled by the server.
-     * Handles cleanup tasks before shutdown.
+     * Called when the plugin is disabled. Reserved for cleanup tasks.
      */
     @Override
     public void onDisable() {
-        // Add any cleanup or shutdown logic here if needed in the future.
+        // Handle any necessary cleanup tasks if needed in the future.
     }
 }

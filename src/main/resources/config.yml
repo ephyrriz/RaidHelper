@@ -2,8 +2,8 @@
 
 settings:
   messages:
-    ring: "Ring the bell to spawn raiders above it if they're not found."
-    cooldown: "Hey, not that quick! Wait a few seconds before you can teleport raiders again."
+    ring: "If you can't find the raiders, just ring the bell."
+    cooldown: "Please wait before ringing the bell again."
     some_cooldown: "Some raids are in cooldown, but others have teleported raiders."
 
   mechanics:
