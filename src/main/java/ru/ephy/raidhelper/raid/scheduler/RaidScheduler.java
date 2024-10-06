@@ -7,109 +7,116 @@ import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidData;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * The RaidScheduler class is responsible for periodically
- * checking the status of active raids in all specified worlds.
- * It processes raids incrementally across multiple ticks to avoid
- * overloading the server with intensive raid-check tasks in a single
- * tick. The class queues raid data for processing and ensures each
- * raid's state is updated as necessary using RaidStateManager.
+ * Periodically checks and processes active raids
+ * in monitored worlds. Raids are processed incrementally
+ * across multiple ticks to avoid server lag.
  */
 public class RaidScheduler {
 
-    private final JavaPlugin plugin;                 // Reference to the plugin instance
-    private final RaidManager raidManager;           // Manages raid data and maps across worlds
+    private final JavaPlugin plugin;                 // Plugin reference for scheduling
+    private final RaidManager raidManager;           // Manages active raids across worlds
+    private final Logger logger;                     // Logger for debugging
 
-    private final RaidStateManager raidStateManager; // Manages and updates the state of raids
-    private final Queue<RaidData> raidDataQueue;     // Queue that stores raids awaiting processing
-    private final Set<World> worldsToCheck;          // Set of worlds where raids will be checked
-    private final int maxRaidsPerTick;               // Maximum number of raid checks to perform in a single tick
+    private final RaidStateManager raidStateManager; // Handles raid state updates
+    private final Queue<RaidData> raidQueue;         // Queue of raids awaiting processing
+    private final Set<RaidData> raidSet;             // Set to ensure no duplicate raids are queued
+    private final Set<World> monitoredWorlds;        // Set of worlds where raids are monitored
+    private final int raidBatchLimit;                // Max number of raids to process per tick
+
+    private int taskId = -1;                         // Task ID for the scheduler
 
     /**
-     * Constructs the {@link RaidScheduler} for periodical raids states updates
+     * Initializes the RaidScheduler for periodically processing raids.
      *
-     * @param plugin       The JavaPlugin instance managing this scheduler
-     * @param raidManager  The manager responsible for tracking active raids
-     * @param config       Configuration settings for scheduling checks
-     * @param logger       Logger instance for debugging
+     * @param plugin       The JavaPlugin instance
+     * @param raidManager  Manages raid data across worlds
+     * @param config       Configuration for scheduling and raid checks
+     * @param logger       Logger for debugging and info
      */
     public RaidScheduler(final JavaPlugin plugin, final RaidManager raidManager,
                          final Config config, final Logger logger) {
+        // Initialize required instances
         this.plugin = plugin;
         this.raidManager = raidManager;
+        this.logger = logger;
+
+        // Initalize required variables
+        monitoredWorlds = config.getValidWorlds();
+        raidBatchLimit = config.getMaxChecksPerTick();
 
         raidStateManager = new RaidStateManager(config, logger);
-        raidDataQueue = new LinkedList<>();
-        worldsToCheck = config.getValidWorlds();
-        maxRaidsPerTick = config.getMaxChecksPerTick();
+        raidQueue = new LinkedList<>();
+        raidSet = new HashSet<>();
 
-        Bukkit.getScheduler().runTaskTimer( // Schedule periodic checks on active raids
+        // Start the scheduler
+        Bukkit.getScheduler().runTaskTimer(
                 plugin,
-                this::checkActiveRaids,
+                this::queueActiveRaids,
                 0L,
                 20L
         );
     }
 
     /**
-     * Iterates through all defined worlds and queues
-     * all active raids for state checks. This method
-     * retrieves active raids from each world and adds
-     * them to a queue if they are not already queued,
-     * ensuring that no raid is processed more than
-     * necessary.
+     * Queues active raids from monitored worlds
+     * for state checking.
      */
-    private void checkActiveRaids() {
-        for (final World world : worldsToCheck) {
+    private void queueActiveRaids() {
+        for (final World world : monitoredWorlds) {
             final Map<Integer, RaidData> raidDataMap = raidManager.getActiveRaidsByWorld().get(world);
 
-            if (raidDataMap != null) {
+            if (raidDataMap != null && !raidDataMap.isEmpty()) {
                 for (final RaidData raidData : raidDataMap.values()) {
-                    if (!raidDataQueue.contains(raidData)) {
-                        raidDataQueue.offer(raidData);
+                    if (raidSet.add(raidData)) {
+                        raidQueue.offer(raidData);
                     }
                 }
             }
         }
-        processQueuedRaids(); // Start processing raids after collecting them
+
+        if (!raidQueue.isEmpty()) {
+            if (taskId == -1) {
+                Bukkit.getScheduler().runTaskTimer(plugin, this::processRaidQueue, 0L, 1L);
+            } else {
+                logger.warning("Cannot process raid queue because the scheduler is busy. TaskId: " + taskId);
+            }
+        }
     }
 
     /**
-     * Processes a limited number of raids from the queue
-     * each tick to avoid overloading the server.
-     * This method polls the queue and updates the state of each
-     * raid, re-queuing them for further checks in future ticks.
-     * If there are more raids to process than the per-tick limit, it
-     * schedules another task for the next tick to continue processing.
+     * Processes a limited number of raids from the
+     * queue per tick to avoid server overload.
+     * If there are still raids left in the queue,
+     * it schedules another task for the next tick.
      */
-    private void processQueuedRaids() {
+    private void processRaidQueue() {
         int processedCount = 0;
 
-        while (processedCount < maxRaidsPerTick && !raidDataQueue.isEmpty()) {
-            final RaidData raidData = raidDataQueue.poll();
+        while (processedCount < raidBatchLimit && !raidQueue.isEmpty()) {
+            final RaidData raidData = raidQueue.poll();
+            raidSet.remove(raidData);
             updateRaidState(raidData);
             processedCount++;
         }
 
-        if (!raidDataQueue.isEmpty()) {
-            Bukkit.getScheduler().runTaskLater(
-                    plugin,
-                    this::processQueuedRaids,
-                    1L
-            );
+        if (!raidQueue.isEmpty()) {
+            if (taskId != -1) {
+                Bukkit.getScheduler().cancelTask(taskId);
+                taskId = -1;
+            } else {
+                logger.warning("Cannot cancel the process of the raid queue because the scheduler is asleep. TaskId: " + taskId);
+            }
         }
     }
 
     /**
      * Updates the state of the given raid using the RaidStateManager.
      *
-     * @param raidData The RaidData instance representing the current raid.
+     * @param raidData The raid data to update.
      */
     private void updateRaidState(final RaidData raidData) {
         raidStateManager.updateRaidState(raidData); // Delegate the state update to RaidStateManager

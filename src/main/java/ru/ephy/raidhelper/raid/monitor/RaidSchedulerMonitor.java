@@ -21,6 +21,7 @@ public class RaidSchedulerMonitor {
     private final Logger logger;               // Logger for debugging
 
     private final Queue<Raid> raidQueue;       // Queue of active raids to process
+    private final Set<Raid> raidSet;           // Set to ensure no duplicate raids are queued
     private final Set<World> monitoredWorlds;  // Worlds currently monitored for raids
     private final int raidBatchLimit;          // Max number of raids processed per update
 
@@ -46,6 +47,7 @@ public class RaidSchedulerMonitor {
         raidBatchLimit = config.getMaxChecksPerTick();
 
         raidQueue = new LinkedList<>();
+        raidSet = new HashSet<>();
 
         // Start the scheduler
         Bukkit.getScheduler().runTaskTimer(
@@ -62,7 +64,7 @@ public class RaidSchedulerMonitor {
     private void scanWorldsForRaids() {
         for (final World world : monitoredWorlds) {
             for (final Raid raid : world.getRaids()) {
-                if (!raidQueue.contains(raid) && !raidManager.isRaidRegistered(raid)) {
+                if (raidSet.add(raid) && !raidManager.isRaidRegistered(raid)) {
                     raidQueue.offer(raid);
                 }
             }
@@ -90,15 +92,18 @@ public class RaidSchedulerMonitor {
 
         while (processedCount < raidBatchLimit && !raidQueue.isEmpty()) {
             final Raid raid = raidQueue.poll();
-            if (raid != null && raid.isStarted()) {
-                registerRaid(raid);
-                processedCount++;
-            }
+            registerRaid(raid);
+            raidSet.remove(raid);
+            processedCount++;
         }
 
-        if (raidQueue.isEmpty() && taskId != -1) {
-            Bukkit.getScheduler().cancelTask(taskId);
-            taskId = -1;
+        if (raidQueue.isEmpty()) {
+            if (taskId != -1) {
+                Bukkit.getScheduler().cancelTask(taskId);
+                taskId = -1;
+            } else {
+                logger.warning("Cannot cancel the task for raids scan because the scheduler is asleep. TaskId: " + taskId);
+            }
         }
     }
 

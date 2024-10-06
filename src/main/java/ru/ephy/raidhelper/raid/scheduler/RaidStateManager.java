@@ -10,110 +10,112 @@ import java.util.Collection;
 import java.util.logging.Logger;
 
 /**
- * Manages raid states and handles player notifications.
+ * Handles the raid state updates and player
+ * notifications during a raid.
  */
 public class RaidStateManager {
 
-    private final Logger logger;             // Logger for debugging
+    private final Logger logger;               // Logger for debugging
 
-    private final Component message;         // Message sent to players
-    private final double notificationRadius; // Radius to send messages to players
-    private final int cooldownTicks;         // Cooldown duration in ticks
+    private final Component notificationMessage;  // Message sent to nearby players
+    private final double notifyRadius;         // Radius for player notifications
+    private final int cooldownDuration;        // Cooldown between updates in ticks
 
     /**
-     * Constructs the {@link RaidStateManager} for updating raid data states.
+     * Initializes the RaidStateManager with configuration settings.
      *
-     * @param config Configuration for raid behavior
-     * @param logger Logger for debug information
+     * @param config Configuration for raid notifications and behavior
+     * @param logger Logger for debugging and info logging
      */
     public RaidStateManager(final Config config, final Logger logger) {
+        // Initializes required instance
         this.logger = logger;
 
-        message = config.getRingMessage();
-        notificationRadius = config.getRadius();
-        cooldownTicks = config.getBellWorkDelay();
+        // Initializes required variables
+        notificationMessage = config.getRingMessage();
+        notifyRadius = config.getRadius();
+        cooldownDuration = config.getBellWorkDelay();
     }
 
     /**
-     * Updates the state of the given raid.
+     * Updates the state of the given raid, either
+     * handling wave end or processing ongoing waves.
      *
-     * @param raidData RaidData instance with the raid's current status
+     * @param raidData Data associated with the current raid state
      */
     public void updateRaidState(final RaidData raidData) {
-        if (isWaveEnded(raidData.getRaid())) {
-            handleWaveEnd(raidData);
+        if (hasWaveEnded(raidData.getRaidInstance())) {
+            processWaveEnd(raidData);
         } else {
-            handleOngoingWave(raidData);
+            processOngoingWave(raidData);
         }
     }
 
     /**
-     * Checks if all raiders are defeated, signaling
-     * the end of a wave.
+     * Checks if the current raid wave has ended (all raiders defeated).
      *
-     * @param raid The raid to check
-     * @return True if all raiders are defeated, false otherwise
+     * @param raid The raid instance to check
+     * @return True if the current wave has ended, false otherwise
      */
-    private boolean isWaveEnded(final Raid raid) {
-        logger.info("Total health for raid #" + raid.getId() + ": " + raid.getTotalHealth() + ". Is empty? " + raid.getRaiders().isEmpty());
+    private boolean hasWaveEnded(final Raid raid) {
+        logger.fine("Raid #" + raid.getId() + ": total health = " + raid.getTotalHealth() + ". Is empty? " + raid.getRaiders().isEmpty());
         return raid.getRaiders().isEmpty();
     }
 
     /**
-     * Handles the end of a wave by resetting flags
-     * and counters.
+     * Handles the end of a raid wave by resetting certain flags
+     * and counters in the raid data.
      *
-     * @param raidData RaidData instance to update
+     * @param raidData The raid data to update after a wave ends
      */
-    private void handleWaveEnd(final RaidData raidData) {
-        if (raidData.isCanResetCounter()) {
-            raidData.setCanResetCounter(false);
-            raidData.setCanTeleport(false);
+    private void processWaveEnd(final RaidData raidData) {
+        if (raidData.isCounterResetAllowed()) {
+            raidData.setCounterResetAllowed(false);
+            raidData.setTeleportEnabled(false);
             raidData.resetCounter();
         }
     }
 
     /**
-     * Updates the raid's state during an ongoing wave,
-     * managing cooldown and notifications.
+     * Processes an ongoing raid wave by managing
+     * cooldowns and triggering actions when needed.
      *
-     * @param raidData RaidData instance to update
+     * @param raidData The raid data to update for ongoing waves
      */
-    private void handleOngoingWave(final RaidData raidData) {
-        if (!raidData.isCanResetCounter()) {
-            raidData.setCanResetCounter(true);
+    private void processOngoingWave(final RaidData raidData) {
+        if (!raidData.isCounterResetAllowed()) {
+            raidData.setCounterResetAllowed(true);
         }
 
-        if (raidData.getCounter() > cooldownTicks) {
-            updateRingableState(raidData);
+        if (raidData.getTickCounter() > cooldownDuration) {
+            enableTeleportAndNotify(raidData);
         } else {
             raidData.incrementCounter();
         }
     }
 
     /**
-     * Updates the ringable state and notifies players if necessary.
+     * Enables teleporting and sends notifications to nearby players.
      *
-     * @param raidData RaidData to update
+     * @param raidData The raid data to update with notifications
      */
-    private void updateRingableState(final RaidData raidData) {
-        if (!raidData.isCanTeleport()) {
-            raidData.setCanTeleport(true);
+    private void enableTeleportAndNotify(final RaidData raidData) {
+        if (!raidData.isTeleportEnabled()) {
+            raidData.setTeleportEnabled(true);
         }
-        sendActionBarMessage(raidData);
+        notifyNearbyPlayers(raidData);
     }
 
     /**
-     * Sends a notification message to players nearby
-     * the raid's location.
+     * Notifies nearby players with an action bar message.
      *
-     * @param raidData RaidData with location information
+     * @param raidData The raid data containing the location and radius for notifications
      */
-    private void sendActionBarMessage(final RaidData raidData) {
-        final Collection<Player> nearbyPlayers = raidData.getLocation().getNearbyPlayers(notificationRadius);
+    private void notifyNearbyPlayers(final RaidData raidData) {
+        final Collection<Player> nearbyPlayers = raidData.getRaidLocation().getNearbyPlayers(notifyRadius);
 
         for (final Player player : nearbyPlayers) {
-            player.sendActionBar(message);
+            player.sendActionBar(notificationMessage);
         }
     }
 }

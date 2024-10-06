@@ -50,7 +50,7 @@ public class Teleporter {
         this.logger = logger;
 
         cooldownMsg = config.getCooldownWarning();
-        partialCooldownMsg = config.getSomeInCooldownWarning();
+        partialCooldownMsg = config.getPartialCooldownWarning();
         rangeSquared = Math.pow(config.getRadius(), 2); // Calculate range squared
         cooldownTime = config.getBellCooldown();
         delay = config.getTeleportDelay();
@@ -92,10 +92,10 @@ public class Teleporter {
                 someOnCooldown = true;
             } else {
                 allOnCooldown = false;
-                if (raidData.isCanTeleport() && isWithinRange(raidData.getLocation(), bellLocation)) {
+                if (raidData.isTeleportEnabled() && isWithinRange(raidData.getRaidLocation(), bellLocation)) {
                     teleportEligibleRaiders(raidData, bellLocation);
                     setRaidCooldown(raidData);
-                    pool.release(this);
+                    pool.returnTeleporter(this);
                 }
             }
         }
@@ -111,7 +111,7 @@ public class Teleporter {
      */
     private void teleportEligibleRaiders(final RaidData raidData, final Location bellLocation) {
         final Location targetLocation = bellLocation.clone().add(0, heightOffset, 0);
-        scheduleRaiderTeleport(raidData.getRaid(), targetLocation);
+        scheduleRaiderTeleport(raidData.getRaidInstance(), targetLocation);
     }
 
     /**

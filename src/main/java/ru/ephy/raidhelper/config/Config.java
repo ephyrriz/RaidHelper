@@ -36,7 +36,7 @@ public class Config {
     private Component partialCooldownWarning;    // Some raids cooldown message
     private double radius;                       // Radius for teleportation around the bell
     private int height;                          // Teleportation height
-    private int poolMaxSize;                     // Maximum size of the teleporter pool
+    private int maxPoolSize;                     // Maximum size of the teleporter pool
     private int bellCooldown;                    // Bell cooldown duration
     private int bellWorkDelay;                   // Delay before bell activation
     private int worldCheckFrequency;             // Frequency of world checks in ticks
@@ -112,7 +112,7 @@ public class Config {
         raidCheckMode = getRaidCheckMode(RAID_CHECK + ".mode", "SCHEDULER");
         worldCheckFrequency = getValidatedInt(RAID_CHECK + ".world_frequency", 100);
         maxChecksPerTick = getValidatedInt(RAID_CHECK + ".max_checks_per_tick", 5);
-        poolMaxSize = getValidatedInt(RAID_CHECK + ".max_pool_size", 5);
+        maxPoolSize = getValidatedInt(RAID_CHECK + ".max_pool_size", 5);
     }
 
     /**

@@ -9,17 +9,19 @@ import org.bukkit.event.raid.RaidStopEvent;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
 /**
- * Handles events related to raid completion or termination.
- * When a raid finishes or stops, it is removed from the plugin's active raid list.
+ * Listens for events related to the completion
+ * or termination of raids. This class handles
+ * the removal of raids from the active list when
+ * they finish or stop.
  */
 @RequiredArgsConstructor
 public class RaidEnd implements Listener {
     private final RaidManager raidManager; // Manages active raids
 
     /**
-     * Listens for the RaidFinishEvent and handles the raid's completion.
+     * Handles the completion of a raid.
      *
-     * @param event The RaidFinishEvent.
+     * @param event The event triggered when a raid finishes.
      */
     @EventHandler
     public void on(final RaidFinishEvent event) {
@@ -27,9 +29,9 @@ public class RaidEnd implements Listener {
     }
 
     /**
-     * Listens for the RaidStopEvent and handles the raid's termination.
+     * Handles the termination of a raid.
      *
-     * @param event The RaidStopEvent.
+     * @param event The event triggered when a raid stops.
      */
     @EventHandler
     public void on(final RaidStopEvent event) {
@@ -38,8 +40,7 @@ public class RaidEnd implements Listener {
 
 
     /**
-     * Handles both RaidFinishEvent and RaidStopEvent.
-     * Removes the raid from the active raid map if it exists.
+     * Removes the specified raid from the active raids list if present.
      *
      * @param raid The raid instance to be removed.
      */

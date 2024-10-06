@@ -10,6 +10,7 @@ import ru.ephy.raidhelper.raid.scheduler.RaidScheduler;
 import ru.ephy.raidhelper.raid.events.bell.BellRing;
 import ru.ephy.raidhelper.raid.events.end.RaidEnd;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -43,6 +44,7 @@ public final class Raidhelper extends JavaPlugin {
     private void initializeCoreComponents() {
         plugin = this;
         logger = getLogger();
+        logger.setLevel(Level.FINE);
         config = initializeConfig();
         pluginManager = getServer().getPluginManager();
         raidManager = new RaidManager(logger);
@@ -74,7 +76,7 @@ public final class Raidhelper extends JavaPlugin {
     private void startRaidMonitor() {
         switch (config.getRaidCheckMode()) {
             case SCHEDULER -> new RaidSchedulerMonitor(plugin, raidManager, config, logger);
-            case EVENT -> pluginManager.registerEvents(new RaidEventMonitor(plugin, raidManager, config), plugin);
+            case EVENT -> pluginManager.registerEvents(new RaidEventMonitor(plugin, raidManager, config, logger), plugin);
             default -> {
                 logger.warning("Invalid RaidCheckMode. Defaulting to SCHEDULER.");
                 new RaidSchedulerMonitor(plugin, raidManager, config, logger);

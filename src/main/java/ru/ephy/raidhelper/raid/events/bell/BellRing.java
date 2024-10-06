@@ -14,47 +14,49 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * Handles the event of a bell being rung during a raid.
- * It validates whether the bell is located in a configured world
- * and triggers the teleportation of raiders if conditions are met.
+ * Handles bell ring events during a raid. If the bell
+ * is located in a configured world, it triggers the
+ * teleportation of raiders if conditions are met.
  */
 public class BellRing implements Listener {
 
-    private final JavaPlugin plugin;                      // Reference to the plugin instance
-    private final Config config;                          // Configuration settings for raid handling
-    private final RaidManager raidManager;                // Manages active raids
-    private final Logger logger;                          // Logger for debugging and information
+    private final JavaPlugin plugin;                // Plugin reference
+    private final Config config;                    // Configuration settings
+    private final RaidManager raidManager;          // Manages active raids
+    private final Logger logger;                    // Logger for debugging
 
-    private final TeleporterPool teleporterPool;          // Pool of reusable Teleporter instances
-    private final Map<Location, Boolean> locationBellMap; // Location bell mao
-    private final Set<World> allowedWorlds;               // Set of worlds where raid events are allowed
+    private final TeleporterPool teleportPool;      // Pool for reusable Teleporter instances
+    private final Map<Location, Boolean> bellCache; // Cached bell locations
+    private final Set<World> validWorlds;           // Worlds where raid events are valid
 
     /**
-     * Constructs a BellRingListener to handle bell ring events during raids.
+     * Constructs a BellRing handler for managing bell ring events during raids.
      *
-     * @param plugin       The plugin instance used for scheduling tasks and managing events
-     * @param raidManager  Manager that tracks and processes raid data
-     * @param config       Configuration object containing raid-related settings
-     * @param logger       Logger for recording events and errors
+     * @param plugin       Plugin instance for scheduling and managing tasks
+     * @param raidManager  Manages raid data and processes active raids
+     * @param config       Contains settings related to raids
+     * @param logger       Logs events and errors
      */
     public BellRing(final JavaPlugin plugin, final RaidManager raidManager,
                     final Config config, final Logger logger) {
+        // Initializes required instances
         this.plugin = plugin;
         this.config = config;
         this.raidManager = raidManager;
         this.logger = logger;
 
-        allowedWorlds = config.getValidWorlds();
-        locationBellMap = new WeakHashMap<>();
+        // Initializes required variables
+        validWorlds = config.getValidWorlds();
 
-        teleporterPool = new TeleporterPool(config);
+        bellCache = new WeakHashMap<>();
+        teleportPool = new TeleporterPool(config);
     }
 
     /**
-     * Handles the bell ring event. If the bell is located in a valid world,
-     * it triggers the teleportation of raiders within range.
+     * Handles the bell ring event. If the bell is in a valid world,
+     * triggers teleportation of raiders nearby.
      *
-     * @param event The bell ring event triggered by a player
+     * @param event Bell ring event triggered by a player
      */
     @EventHandler
     public void on(final BellRingEvent event) {
@@ -62,33 +64,34 @@ public class BellRing implements Listener {
             final Location bellLocation = event.getBlock().getLocation();
             final World bellWorld = bellLocation.getWorld();
 
-            if (isBellLocationCachedOrAllowed(bellLocation, bellWorld)) {
-                handleTeleport(player, bellWorld, bellLocation);
+            if (isValidBellLocation(bellLocation, bellWorld)) {
+                processTeleport(player, bellWorld, bellLocation);
             }
         }
     }
 
     /**
-     * Handles the teleportation logic by borrowing a Teleporter from the pool
-     * and initiating the teleportation process.
+     * Handles teleportation by borrowing a Teleporter from the pool and
+     * initiating the teleport process.
      *
-     * @param player       The player who rang the bell
-     * @param bellLocation The location of the bell
+     * @param player       Player who rang the bell
+     * @param bellWorld    The world where the bell is located
+     * @param bellLocation Location of the bell
      */
-    private void handleTeleport(final Player player, final World bellWorld, final Location bellLocation) {
-        final Teleporter teleporter = teleporterPool.borrowTeleporter(plugin, raidManager, config, logger);
+    private void processTeleport(final Player player, final World bellWorld, final Location bellLocation) {
+        final Teleporter teleporter = teleportPool.getTeleporter(plugin, raidManager, config, logger);
 
         teleporter.handleTeleport(player, bellWorld, bellLocation);
     }
 
     /**
-     * Checks whether the given world is in the set of worlds where raids are allowed.
+     * Checks if the bell is in a valid world or if the location is cached.
      *
-     * @param bellWorld The world to check
-     * @return true if the world is in the configured set, false otherwise
+     * @param bellLocation Bell's location
+     * @param bellWorld    World where the bell is located
+     * @return true if the bell location is valid, false otherwise
      */
-    private boolean isBellLocationCachedOrAllowed(final Location bellLocation, final World bellWorld) {
-        return locationBellMap.computeIfAbsent(bellLocation, location ->
-                allowedWorlds.contains(bellWorld));
+    private boolean isValidBellLocation(final Location bellLocation, final World bellWorld) {
+        return bellCache.computeIfAbsent(bellLocation, location -> validWorlds.contains(bellWorld));
     }
 }

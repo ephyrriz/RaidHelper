@@ -9,51 +9,50 @@ import java.util.Queue;
 import java.util.logging.Logger;
 
 /**
- * This class manages the pool of {@link Teleporter}
- * instances to reduce the load on the server during
- * periodic calls of the {@link BellRing} class.
+ * Manages a pool of reusable {@link Teleporter} instances to
+ * optimize performance by reusing objects during raid
+ * teleportation, reducing creation overhead.
  */
 public class TeleporterPool {
 
-    private final Queue<Teleporter> pool;
-    private final int poolMaxSize;
+    private final Queue<Teleporter> teleporterQueue;  // Queue holding available Teleporters
+    private final int maxPoolSize;                    // Max number of Teleporters in the pool
 
     /**
-     * Constructs the {@link TeleporterPool} for managing Teleport instances
+     * Initializes the TeleporterPool to manage reusable Teleporter instances.
      *
-     * @param config Configuration
+     * @param config Configuration that defines pool size.
      */
     public TeleporterPool(final Config config) {
-        pool = new LinkedList<>();
-        poolMaxSize = config.getPoolMaxSize();
+        teleporterQueue = new LinkedList<>();
+        maxPoolSize = config.getMaxPoolSize();
     }
 
     /**
-     * Lets the {@link BellRing} borrow one of
-     * {@link Teleporter} to handle the teleport process.
+     * Provides an available Teleporter instance or creates a new one if the pool is empty.
      *
-     * @param plugin       The Plugin's instance for schedulers
-     * @param raidManager  The RaidManager to use for processing raids
-     * @param config       The Config's instance for initializing needed variables
-     * @param logger       Logger for logging messages
-     * @return one of teleporters' instances
+     * @param plugin       The plugin instance required by the teleporter.
+     * @param raidManager  The RaidManager handling raid logic.
+     * @param config       Config instance for initializing teleport variables.
+     * @param logger       Logger for logging debug or informational messages.
+     * @return A Teleporter instance from the pool or a newly created one.
      */
-    public Teleporter borrowTeleporter(final JavaPlugin plugin, final RaidManager raidManager,
-                                       final Config config, final Logger logger) {
-        if (!pool.isEmpty()) {
-            return pool.poll();
+    public Teleporter getTeleporter(final JavaPlugin plugin, final RaidManager raidManager,
+                                    final Config config, final Logger logger) {
+        if (!teleporterQueue.isEmpty()) {
+            return teleporterQueue.poll();
         }
         return new Teleporter(plugin, this, raidManager, config, logger);
     }
 
     /**
-     * Releases the used {@link Teleporter} back in the pool.
+     * Returns the used Teleporter instance back to the pool for future use.
      *
-     * @param teleporter The used Teleporter
+     * @param teleporter The Teleporter instance to return.
      */
-    public void release(final Teleporter teleporter) {
-        if (pool.size() < poolMaxSize) {
-            pool.offer(teleporter);
+    public void returnTeleporter(final Teleporter teleporter) {
+        if (teleporterQueue.size() < maxPoolSize) {
+            teleporterQueue.offer(teleporter);
         }
     }
 }

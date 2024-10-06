@@ -44,10 +44,7 @@ public class RaidManager {
         final World raidWorld = raidLocation.getWorld();
 
         activeRaidsByWorld.computeIfAbsent(raidWorld, world -> new HashMap<>())
-                    .computeIfAbsent(raidId, id -> {
-                        logger.fine("Adding raid. RaidId: " + raidId + " | Raid location: " + raidLocation);
-                        return new RaidData(raidId, raid, raidLocation, raidWorld);
-                    });
+                    .computeIfAbsent(raidId, id -> new RaidData(raidId, raid, raidLocation, raidWorld));
     }
 
     /**
@@ -58,7 +55,6 @@ public class RaidManager {
      */
     public void removeRaidIfPresent(final Raid raid) {
         activeRaidsByWorld.computeIfPresent(raid.getLocation().getWorld(), (world, raidDataMap) -> {
-            logger.fine("Removing raid. RaidId: " + raid.getId() + " | Raid location: " + raid.getLocation());
             raidDataMap.remove(raid.getId());
             return raidDataMap.isEmpty() ? null : raidDataMap;
         });
@@ -72,10 +68,8 @@ public class RaidManager {
      */
     public boolean isRaidRegistered(final Raid raid) {
         final World raidWorld = raid.getLocation().getWorld();
-        final boolean registered = activeRaidsByWorld.containsKey(raidWorld) &&
-                                   activeRaidsByWorld.get(raidWorld).containsKey(raid.getId());
+        return activeRaidsByWorld.containsKey(raidWorld) &&
+               activeRaidsByWorld.get(raidWorld).containsKey(raid.getId());
 
-        logger.fine("Checking registration for RaidId: " + raid.getId() + " | Registered: " + registered);
-        return registered;
     }
 }
