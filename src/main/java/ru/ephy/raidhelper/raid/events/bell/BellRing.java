@@ -81,7 +81,7 @@ public class BellRing implements Listener {
     private void processTeleport(final Player player, final World bellWorld, final Location bellLocation) {
         final Teleporter teleporter = teleportPool.getTeleporter(plugin, raidManager, config, logger);
 
-        teleporter.handleTeleport(player, bellWorld, bellLocation);
+        teleporter.initiateTeleport(player, bellWorld, bellLocation);
     }
 
     /**
