@@ -110,7 +110,7 @@ public class Teleporter {
      * @param bellLocation Location of the bell
      */
     private void teleportRaiders(final RaidData raidData, final Location bellLocation) {
-        final Location targetLocation = bellLocation.add(0, teleportHeightOffset, 0);
+        final Location targetLocation = bellLocation.clone().add(0, teleportHeightOffset, 0);
         scheduleTeleport(raidData.getRaidInstance(), targetLocation);
     }
 
