@@ -31,7 +31,8 @@ public class Config {
 
     private RaidCheckMode raidCheckMode;         // Raid check mode (SCHEDULER or EVENT)
     private Set<World> validWorlds;              // Set of valid worlds from the configuration
-    private Component ringMessage;               // Message when ringing the bell
+    private Component teleportMessage;           // Message when teleport raiders
+    private Component ringMessage;               // Message when ringing the bell is avaliable
     private Component cooldownWarning;           // Message for cooldown warning
     private Component partialCooldownWarning;    // Some raids cooldown message
     private double radius;                       // Radius for teleportation around the bell
@@ -84,6 +85,8 @@ public class Config {
      * Sets default messages if not found in the file.
      */
     private void loadMessageSettings() {
+        teleportMessage = loadComponent(MESSAGES + ".teleport",
+                "Raiders on their way to your bell!");
         ringMessage = loadComponent(MESSAGES + ".ring",
                 "If you can't find the raiders, just ring the bell.");
         cooldownWarning = loadComponent(MESSAGES + ".cooldown",

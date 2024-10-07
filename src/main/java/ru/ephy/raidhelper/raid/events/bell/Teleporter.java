@@ -26,6 +26,7 @@ public class Teleporter {
     private final TeleporterPool pool;                // Reusable teleporter pool
     private final Logger logger;                      // Logger for debug and info
 
+    private final Component teleportMessage;          // Message when teleport is successful
     private final Component cooldownMessage;          // Message when raid is on cooldown
     private final Component partialCooldownMesssage;  // Message for partial cooldowns
     private final double teleportRadiusSquared;       // Teleport range (squared)
@@ -53,6 +54,8 @@ public class Teleporter {
         // Initializes required variables
         cooldownMessage = config.getCooldownWarning();
         partialCooldownMesssage = config.getPartialCooldownWarning();
+        teleportMessage = config.getTeleportMessage();
+
         teleportRadiusSquared = Math.pow(config.getRadius(), 2); // Calculate radius squared
         cooldownDuration = config.getBellCooldown();
         delay = config.getTeleportDelay();
@@ -86,6 +89,7 @@ public class Teleporter {
 
         boolean allOnCooldown = true;   // If all raids are in cooldown
         boolean someOnCooldown = false; // If some of raids are not in cooldown
+        boolean noneOnCooldown = false; // If none of raids in cooldown
 
         for (final RaidData raidData : raidMap.values()) {
             if (raidData.isCooldownActive()) {
@@ -93,6 +97,7 @@ public class Teleporter {
             } else {
                 allOnCooldown = false;
                 if (raidData.isTeleportEnabled() && isWithinTeleportRange(raidData.getRaidLocation(), bellLocation)) {
+                    noneOnCooldown = true;
                     teleportRaiders(raidData, bellLocation);
                     activateCooldown(raidData);
                     pool.returnTeleporter(this);
@@ -100,7 +105,7 @@ public class Teleporter {
             }
         }
 
-        sendCooldownMessage(player, allOnCooldown, someOnCooldown);
+        sendMessage(player, allOnCooldown, someOnCooldown, noneOnCooldown);
     }
 
     /**
@@ -169,11 +174,13 @@ public class Teleporter {
      * @param allOnCooldown If all raids are on cooldown
      * @param someOnCooldown If some raids are on cooldown
      */
-    private void sendCooldownMessage(final Player player, final boolean allOnCooldown, final boolean someOnCooldown) {
+    private void sendMessage(final Player player, final boolean allOnCooldown, final boolean someOnCooldown, final boolean noneOnCooldown) {
         if (allOnCooldown) {
             player.sendMessage(cooldownMessage);
         } else if (someOnCooldown) {
             player.sendMessage(partialCooldownMesssage);
+        } else if (noneOnCooldown) {
+            player.sendMessage(teleportMessage);
         }
     }
 }

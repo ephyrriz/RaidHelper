@@ -2,6 +2,7 @@
 
 settings:
   messages:
+    teleport: "Raiders on their way to your bell!"
     ring: "If you can't find the raiders, just ring the bell."
     cooldown: "Please wait before ringing the bell again."
     some_cooldown: "Some raids are in cooldown, but others have teleported raiders."
