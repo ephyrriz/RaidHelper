@@ -88,7 +88,7 @@ public class Config {
         teleportMessage = loadComponent(MESSAGES + ".teleport",
                 "Raiders on their way to your bell!");
         ringMessage = loadComponent(MESSAGES + ".ring",
-                "If you can't find the raiders, just ring the bell.");
+                "If you can't find the raiders, just ring the bell");
         cooldownWarning = loadComponent(MESSAGES + ".cooldown",
                 "Please wait before ringing the bell again.");
         partialCooldownWarning = loadComponent(MESSAGES + ".some_cooldown",

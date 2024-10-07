@@ -93,19 +93,20 @@ public class Teleporter {
 
         for (final RaidData raidData : raidMap.values()) {
             if (raidData.isCooldownActive()) {
-                someOnCooldown = true;
+                allOnCooldown = true;
             } else {
                 allOnCooldown = false;
+                someOnCooldown = true;
                 if (raidData.isTeleportEnabled() && isWithinTeleportRange(raidData.getRaidLocation(), bellLocation)) {
                     noneOnCooldown = true;
                     teleportRaiders(raidData, bellLocation);
                     activateCooldown(raidData);
-                    pool.returnTeleporter(this);
                 }
             }
         }
 
         sendMessage(player, allOnCooldown, someOnCooldown, noneOnCooldown);
+        pool.returnTeleporter(this);
     }
 
     /**
