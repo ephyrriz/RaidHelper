@@ -19,7 +19,6 @@ settings:
     world_frequency: 100        # Ticks between world raid checks (scheduler mode only)
     max_checks_per_tick: 5      # Max raids to process per tick
     max_pool_size: 5            # Maximum size of the teleporter pool
-    raid_frequency: 20          # Ticks between individual raid checks
 
   worlds:
     - world                     # Add other worlds as needed (e.g., custom_world, world_the_end)

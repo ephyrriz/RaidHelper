@@ -102,9 +102,9 @@ public class Config {
     private void loadMechanicsSettings() {
         bellCooldown = getValidatedInt(MECHANICS + ".bell_cooldown", 100);
         bellWorkDelay = getValidatedInt(MECHANICS + ".bell_work_delay", 60);
-        teleportDelay = getValidatedInt(MECHANICS + ".delay", 60);
-        height = getValidatedInt(MECHANICS + ".height", 10);
-        radius = getValidatedDouble(MECHANICS + ".radius", 50);
+        teleportDelay = getValidatedInt(MECHANICS + ".teleport_delay", 60);
+        height = getValidatedInt(MECHANICS + ".spawn_height", 10);
+        radius = getValidatedDouble(MECHANICS + ".effect_radius", 50);
     }
 
     /**
@@ -132,6 +132,8 @@ public class Config {
 
             if (world != null && world.getEnvironment() != World.Environment.NETHER) {
                 validWorlds.add(world);
+            } else {
+                logger.warning("The world " + worldName + " is null or a nether world.");
             }
         }
     }

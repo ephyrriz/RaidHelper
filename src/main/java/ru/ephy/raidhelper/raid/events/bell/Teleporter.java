@@ -89,23 +89,19 @@ public class Teleporter {
 
         boolean allOnCooldown = true;   // If all raids are in cooldown
         boolean someOnCooldown = false; // If some of raids are not in cooldown
-        boolean noneOnCooldown = false; // If none of raids in cooldown
 
         for (final RaidData raidData : raidMap.values()) {
-            if (raidData.isCooldownActive()) {
-                allOnCooldown = true;
-            } else {
-                allOnCooldown = false;
-                someOnCooldown = true;
-                if (raidData.isTeleportEnabled() && isWithinTeleportRange(raidData.getRaidLocation(), bellLocation)) {
-                    noneOnCooldown = true;
+            if (raidData.isTeleportEnabled() && isWithinTeleportRange(raidData.getRaidLocation(), bellLocation)) {
+                if (raidData.isCooldownActive()) {
+                    someOnCooldown = true;
+                } else {
+                    allOnCooldown = false;
                     teleportRaiders(raidData, bellLocation);
                     activateCooldown(raidData);
                 }
             }
         }
-
-        sendMessage(player, allOnCooldown, someOnCooldown, noneOnCooldown);
+        sendMessage(player, allOnCooldown, someOnCooldown);
         pool.returnTeleporter(this);
     }
 
@@ -175,12 +171,12 @@ public class Teleporter {
      * @param allOnCooldown If all raids are on cooldown
      * @param someOnCooldown If some raids are on cooldown
      */
-    private void sendMessage(final Player player, final boolean allOnCooldown, final boolean someOnCooldown, final boolean noneOnCooldown) {
+    private void sendMessage(final Player player, final boolean allOnCooldown, final boolean someOnCooldown) {
         if (allOnCooldown) {
             player.sendMessage(cooldownMessage);
         } else if (someOnCooldown) {
             player.sendMessage(partialCooldownMesssage);
-        } else if (noneOnCooldown) {
+        } else {
             player.sendMessage(teleportMessage);
         }
     }

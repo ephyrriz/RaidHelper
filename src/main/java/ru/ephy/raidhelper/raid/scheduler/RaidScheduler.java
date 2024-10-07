@@ -80,7 +80,7 @@ public class RaidScheduler {
 
         if (!raidQueue.isEmpty()) {
             if (taskId == -1) {
-                Bukkit.getScheduler().runTaskTimer(plugin, this::processRaidQueue, 0L, 1L);
+                taskId = Bukkit.getScheduler().runTaskTimer(plugin, this::processRaidQueue, 0L, 1L).getTaskId();
             } else {
                 logger.warning("Cannot process raid queue because the scheduler is busy. TaskId: " + taskId);
             }
@@ -103,7 +103,7 @@ public class RaidScheduler {
             processedCount++;
         }
 
-        if (!raidQueue.isEmpty()) {
+        if (raidQueue.isEmpty()) {
             if (taskId != -1) {
                 Bukkit.getScheduler().cancelTask(taskId);
                 taskId = -1;
