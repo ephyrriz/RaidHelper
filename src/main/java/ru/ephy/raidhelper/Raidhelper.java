@@ -44,7 +44,6 @@ public final class Raidhelper extends JavaPlugin {
     private void initializeCoreComponents() {
         plugin = this;
         logger = getLogger();
-        logger.setLevel(Level.FINE);
         config = initializeConfig();
         pluginManager = getServer().getPluginManager();
         raidManager = new RaidManager(logger);

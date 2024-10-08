@@ -3,7 +3,6 @@ package ru.ephy.raidhelper.raid.events.bell;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Raid;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Raider;
@@ -113,7 +112,7 @@ public class Teleporter {
      */
     private void teleportRaiders(final RaidData raidData, final Location bellLocation) {
         final Location targetLocation = bellLocation.clone().add(0, teleportHeightOffset, 0);
-        scheduleTeleport(raidData.getRaidInstance(), targetLocation);
+        scheduleTeleportUpdate(raidData, targetLocation);
     }
 
     /**
@@ -130,17 +129,16 @@ public class Teleporter {
     /**
      * Schedules raider teleportation with a delay.
      *
-     * @param raid          The raid to teleport raiders from
      * @param targetLocation Target location for teleportation
      */
-    private void scheduleTeleport(final Raid raid, final Location targetLocation) {
-        if (raid == null || targetLocation == null) {
+    private void scheduleTeleportUpdate(final RaidData raidData, final Location targetLocation) {
+        if (targetLocation == null) {
             logger.warning("Raid or target location is null. Cannot schedule teleport.");
             return;
         }
 
         Bukkit.getScheduler().runTaskLater(plugin, () ->
-                raid.getRaiders().forEach(raider -> teleportRaider(raider, targetLocation)), delay);
+                raidData.getRaidersSet().forEach(raider -> teleportRaider(raider, targetLocation)), delay);
     }
 
     /**

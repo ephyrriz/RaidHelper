@@ -6,6 +6,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidData;
 import ru.ephy.raidhelper.raid.data.RaidManager;
+import ru.ephy.raidhelper.raid.scheduler.raidstatemanager.NotificationManager;
+import ru.ephy.raidhelper.raid.scheduler.raidstatemanager.RaidCacheManager;
+import ru.ephy.raidhelper.raid.scheduler.raidstatemanager.RaidStateManager;
+import ru.ephy.raidhelper.raid.scheduler.raidstatemanager.RaidWaveProcessor;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -48,14 +52,20 @@ public class RaidScheduler {
         monitoredWorlds = config.getValidWorlds();
         raidBatchLimit = config.getMaxChecksPerTick();
 
-        raidStateManager = new RaidStateManager(config, logger);
         raidQueue = new LinkedList<>();
         raidSet = new HashSet<>();
+
+        // Initialize Raid State Manager
+        raidStateManager = new RaidStateManager(
+                new RaidCacheManager(config),
+                new RaidWaveProcessor(config),
+                new NotificationManager(config)
+        );
 
         // Start the scheduler
         Bukkit.getScheduler().runTaskTimer(
                 plugin,
-                this::queueActiveRaids,
+                this::queueActiveRaidsUpdate,
                 0L,
                 20L
         );
@@ -65,7 +75,7 @@ public class RaidScheduler {
      * Queues active raids from monitored worlds
      * for state checking.
      */
-    private void queueActiveRaids() {
+    private void queueActiveRaidsLegacy() {
         for (final World world : monitoredWorlds) {
             final Map<Integer, RaidData> raidDataMap = raidManager.getActiveRaidsByWorld().get(world);
 
@@ -76,6 +86,31 @@ public class RaidScheduler {
                     }
                 }
             }
+        }
+
+        if (!raidQueue.isEmpty()) {
+            if (taskId == -1) {
+                taskId = Bukkit.getScheduler().runTaskTimer(plugin, this::processRaidQueue, 0L, 1L).getTaskId();
+            } else {
+                logger.warning("Cannot process raid queue because the scheduler is busy. TaskId: " + taskId);
+            }
+        }
+    }
+
+    /**
+     * Queues active raids from monitored worlds
+     * for state checking.
+     */
+    private void queueActiveRaidsUpdate() {
+        for (final World world : monitoredWorlds) {
+            raidManager.getActiveRaidsByWorld().computeIfPresent(world, (w, raidDataMap) -> {
+                for (final RaidData raidData : raidDataMap.values()) {
+                    if (raidSet.add(raidData)) {
+                        raidQueue.offer(raidData);
+                    }
+                }
+                return raidDataMap;
+            });
         }
 
         if (!raidQueue.isEmpty()) {

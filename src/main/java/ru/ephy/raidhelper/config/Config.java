@@ -43,6 +43,7 @@ public class Config {
     private int worldCheckFrequency;             // Frequency of world checks in ticks
     private int maxChecksPerTick;                // Maximum raid checks per tick
     private int teleportDelay;                   // Delay before teleporting raiders
+    private int cacheExpireTime;                 // Cache expire time
 
     /**
      * Enum representing the raid check modes.
@@ -116,6 +117,7 @@ public class Config {
         worldCheckFrequency = getValidatedInt(RAID_CHECK + ".world_frequency", 100);
         maxChecksPerTick = getValidatedInt(RAID_CHECK + ".max_checks_per_tick", 5);
         maxPoolSize = getValidatedInt(RAID_CHECK + ".max_pool_size", 5);
+        cacheExpireTime = getValidatedInt(RAID_CHECK + ".cache_expire_time", 200);
     }
 
     /**

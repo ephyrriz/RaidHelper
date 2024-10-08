@@ -7,6 +7,10 @@ import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.Raid;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Raider;
+
+import java.util.Set;
 
 /**
  * Represents data associated with a specific raid,
@@ -14,6 +18,7 @@ import org.bukkit.World;
  * Tracks a time counter which can be incremented or reset.
  */
 @Getter
+@Setter
 @NonNull
 @RequiredArgsConstructor
 public class RaidData {
@@ -23,12 +28,13 @@ public class RaidData {
     private final Location raidLocation;            // Location where the raid is occurring
     private final World raidWorld;                  // World in which the raid takes place
 
-    @Setter
-    private boolean teleportEnabled = false;      // Allows raiders to teleport when the bell rings
-    @Setter
-    private boolean cooldownActive = false;       // Indicates if the raid is in cooldown
-    @Setter
-    private boolean counterResetAllowed = false;  // Prevents counter reset if false
+
+    private Set<Player> playersWithinRaid;          // Set of players within the raid's range
+    private Set<Raider> raidersSet;                 // Set of raiders of the raid
+    private long lastUpdateTime;                    // Last update time of the raiders and players sets
+    private boolean teleportEnabled = false;        // Allows raiders to teleport when the bell rings
+    private boolean cooldownActive = false;         // Indicates if the raid is in cooldown
+    private boolean counterResetAllowed = false;    // Prevents counter reset if false
     private int tickCounter = 0;                    // Tracks time (in ticks) since the raid started or was reset
 
     /**

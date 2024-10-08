@@ -44,7 +44,11 @@ public class RaidManager {
         final World raidWorld = raidLocation.getWorld();
 
         activeRaidsByWorld.computeIfAbsent(raidWorld, world -> new HashMap<>())
-                    .computeIfAbsent(raidId, id -> new RaidData(raidId, raid, raidLocation, raidWorld));
+                    .computeIfAbsent(raidId, id -> {
+                        final RaidData raidData = new RaidData(raidId, raid, raidLocation, raidWorld);
+                        raidData.setLastUpdateTime(System.currentTimeMillis());
+                        return raidData;
+                    });
     }
 
     /**
