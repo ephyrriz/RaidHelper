@@ -1,30 +1,32 @@
 package ru.ephy.raidhelper.raid.scheduler.raidstatemanager;
 
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Raider;
-
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidData;
 
-import java.util.Set;
+import java.util.HashSet;
 
 public class RaidCacheManager {
+
+    private final JavaPlugin plugin;
 
     private final double notifyRadius;
     private final int cacheExpirationTime;
 
-    public RaidCacheManager(final Config config) {
+    public RaidCacheManager(final JavaPlugin plugin, final Config config) {
+        // Initializes required instances
+        this.plugin = plugin;
+
+        // Initializes required variables
         notifyRadius = Math.pow(config.getRadius(), 2);
         cacheExpirationTime = config.getCacheExpireTime();
     }
 
     public void updateCacheIfNeeded(final RaidData raidData) {
-        final long currentTime = System.currentTimeMillis();
-
-        if (currentTime - raidData.getLastUpdateTime() > cacheExpirationTime) {
-            raidData.setPlayersWithinRaid((Set<Player>) raidData.getRaidLocation().getNearbyPlayers(notifyRadius));
-            raidData.setRaidersSet((Set<Raider>) raidData.getRaidInstance().getRaiders());
-            raidData.setLastUpdateTime(currentTime);
-        }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            raidData.setPlayersWithinRaid(new HashSet<>(raidData.getRaidLocation().getNearbyPlayers(notifyRadius)));
+            raidData.setRaidersSet(new HashSet<>(raidData.getRaidInstance().getRaiders()));
+        }, cacheExpirationTime);
     }
 }

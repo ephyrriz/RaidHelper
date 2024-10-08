@@ -28,10 +28,8 @@ public class RaidData {
     private final Location raidLocation;            // Location where the raid is occurring
     private final World raidWorld;                  // World in which the raid takes place
 
-
     private Set<Player> playersWithinRaid;          // Set of players within the raid's range
     private Set<Raider> raidersSet;                 // Set of raiders of the raid
-    private long lastUpdateTime;                    // Last update time of the raiders and players sets
     private boolean teleportEnabled = false;        // Allows raiders to teleport when the bell rings
     private boolean cooldownActive = false;         // Indicates if the raid is in cooldown
     private boolean counterResetAllowed = false;    // Prevents counter reset if false

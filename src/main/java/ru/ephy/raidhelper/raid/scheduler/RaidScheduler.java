@@ -57,7 +57,7 @@ public class RaidScheduler {
 
         // Initialize Raid State Manager
         raidStateManager = new RaidStateManager(
-                new RaidCacheManager(config),
+                new RaidCacheManager(plugin, config),
                 new RaidWaveProcessor(config),
                 new NotificationManager(config)
         );
