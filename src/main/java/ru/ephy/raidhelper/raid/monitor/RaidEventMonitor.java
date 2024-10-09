@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.raid.*;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
@@ -23,8 +24,8 @@ public class RaidEventMonitor implements Listener {
     private final RaidManager raidManager;    // Manages raid-related operations
     private final Logger logger;              // Logger for debugging
 
-    private final Queue<Raid> raidQueue;      // Queue for raids being processed
-    private final Set<Raid> raidSet;          // Set to ensure no duplicate raids are queued
+    private final Queue<Integer> raidQueue;      // Queue for raids being processed
+    private final Set<Integer> raidSet;          // Set to ensure no duplicate raids are queued
     private final Set<World> monitoredWorlds; // Worlds that are monitored for raid activity
     private final int raidBatchLimit;         // Maximum number of raids processed per tick
 
@@ -33,13 +34,13 @@ public class RaidEventMonitor implements Listener {
     /**
      * Initializes the RaidEventMonitor to listen and handle raid events.
      *
-     * @param plugin     Main plugin instance
-     * @param raidManager    RaidManager responsible for handling raid registration
-     * @param config     Config object to retrieve world and raid processing settings
+     * @param plugin      Main plugin instance
+     * @param raidManager RaidManager responsible for handling raid registration
+     * @param config      Config object to retrieve world and raid processing settings
      */
     public RaidEventMonitor(final JavaPlugin plugin, final RaidManager raidManager,
                             final Config config, final Logger logger) {
-        // Initialize required instances
+        // Initializes required instances
         this.plugin = plugin;
         this.raidManager = raidManager;
         this.logger = logger;
@@ -59,7 +60,10 @@ public class RaidEventMonitor implements Listener {
      * @param event Raid-related event
      */
     @EventHandler
-    public void on(final RaidEvent event) { scanWorldsForRaids(event.getWorld()); }
+    public void on(final RaidEvent event) {
+        final World world = event.getWorld();
+        scanWorldForRaids(world);
+    }
 
     /**
      * Checks the provided world for active raids
@@ -67,7 +71,7 @@ public class RaidEventMonitor implements Listener {
      *
      * @param world World where the event occurred
      */
-    private void scanWorldsForRaids(final World world) {
+    private void scanWorldForRaids(final World world) {
         if (monitoredWorlds.contains(world)) {
             processRaidsInWorld(world);
         }
@@ -80,23 +84,22 @@ public class RaidEventMonitor implements Listener {
      * @param world World to scan for raids
      */
     private void processRaidsInWorld(final World world) {
-        for (final Raid raid : world.getRaids()) {
-            if (raidSet.add(raid) && raidManager.isRaidRegistered(raid)) {
-                raidQueue.offer(raid);
+        final Set<Raid> raidsInWorld = new HashSet<>(world.getRaids());
+
+        for (final Raid raid : raidsInWorld) {
+            final int raidId = raid.getId();
+
+            if (raidManager.isRaidRegistered(getRaid(world, raidId)) && raidSet.add(raidId)) {
+                raidQueue.offer(raidId);
             }
         }
 
-        if (!raidQueue.isEmpty()) {
-            if (taskId == -1) {
-                taskId = Bukkit.getScheduler().runTaskTimer(
-                        plugin,
-                        this::processRaidsInBatches,
-                        0L,
-                        1L
-                ).getTaskId();
-            } else {
-                logger.warning("Cannot scan raids because the scheduler is busy. TaskId: " + taskId);
-            }
+        if (!raidQueue.isEmpty() && taskId == -1) {
+            taskId = Bukkit.getScheduler().runTaskTimer(
+                    plugin, () -> processRaidsInBatches(world), 0L, 1L
+            ).getTaskId();
+        } else if (taskId != -1) {
+            logger.warning("Cannot scan raids because the scheduler is busy. TaskId: " + taskId);
         }
     }
 
@@ -104,23 +107,39 @@ public class RaidEventMonitor implements Listener {
      * Processes raids in the queue in batches,
      * limiting the number per tick.
      */
-    private void processRaidsInBatches() {
+    private void processRaidsInBatches(final World world) {
         int processedCount = 0;
 
         while (processedCount < raidBatchLimit && !raidQueue.isEmpty()) {
-            final Raid raid = raidQueue.poll();
-            registerRaid(raid);
-            processedCount++;
-        }
+            final int raidId = raidQueue.poll();
+            final Raid raid = getRaid(world, raidId);
 
-        if (raidQueue.isEmpty()) {
-            if (taskId != -1) {
-                Bukkit.getScheduler().cancelTask(taskId);
-                taskId = -1;
+            if (raid != null) {
+                registerRaid(raid);
+                processedCount++;
             } else {
-                logger.warning("Cannot cancel the task for raids scan because the scheduler is asleep. TaskId: " + taskId);
+                logger.warning("The raid by id " + raidId + " is null");
             }
         }
+
+        if (raidQueue.isEmpty() && taskId != -1) {
+            Bukkit.getScheduler().cancelTask(taskId);
+            taskId = -1;
+        } else if (taskId == -1) {
+            logger.warning("Cannot cancel the task for raids scan because the scheduler is asleep. TaskId: " + taskId);
+        }
+    }
+
+    /**
+     * Gets the raid by ID from the specified world.
+     *
+     * @param world  World to look for the raid
+     * @param raidId The ID of the raid
+     * @return The raid instance, if not null. Returns null otherwise.
+     */
+    @Nullable
+    private Raid getRaid(final World world, final int raidId) {
+        return world.getRaid(raidId);
     }
 
     /**

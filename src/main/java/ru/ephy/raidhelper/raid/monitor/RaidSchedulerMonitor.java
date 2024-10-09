@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Raid;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
@@ -20,8 +21,8 @@ public class RaidSchedulerMonitor {
     private final RaidManager raidManager;     // Manages raid registrations
     private final Logger logger;               // Logger for debugging
 
-    private final Queue<Raid> raidQueue;       // Queue of active raids to process
-    private final Set<Raid> raidSet;           // Set to ensure no duplicate raids are queued
+    private final Queue<Integer> raidQueue;       // Queue of active raids to process
+    private final Set<Integer> raidSet;           // Set to ensure no duplicate raids are queued
     private final Set<World> monitoredWorlds;  // Worlds currently monitored for raids
     private final int raidBatchLimit;          // Max number of raids processed per update
 
@@ -51,10 +52,7 @@ public class RaidSchedulerMonitor {
 
         // Start the scheduler
         Bukkit.getScheduler().runTaskTimer(
-                plugin,
-                this::scanWorldsForRaids,
-                0L,
-                config.getWorldCheckFrequency());
+                plugin, this::scanWorldsForRaids, 0L, config.getWorldCheckFrequency());
     }
 
     /**
@@ -64,8 +62,10 @@ public class RaidSchedulerMonitor {
     private void scanWorldsForRaids() {
         for (final World world : monitoredWorlds) {
             for (final Raid raid : world.getRaids()) {
-                if (raidSet.add(raid) && !raidManager.isRaidRegistered(raid)) {
-                    raidQueue.offer(raid);
+                final int raidId = raid.getId();
+
+                if (raidSet.add(raidId) && !raidManager.isRaidRegistered(raid)) {
+                    raidQueue.offer(raidId);
                 }
             }
         }
@@ -87,13 +87,15 @@ public class RaidSchedulerMonitor {
     /**
      * Processes active raids in manageable batches.
      */
-    private void processRaids() {
+    private void processRaids(final World world) {
         int processedCount = 0;
 
         while (processedCount < raidBatchLimit && !raidQueue.isEmpty()) {
-            final Raid raid = raidQueue.poll();
+            final int raidId = raidQueue.poll();
+            final Raid raid = getRaid(world, raidId);
+
             registerRaid(raid);
-            raidSet.remove(raid);
+            raidSet.remove(raidId);
             processedCount++;
         }
 
@@ -105,6 +107,18 @@ public class RaidSchedulerMonitor {
                 logger.warning("Cannot cancel the task for raids scan because the scheduler is asleep. TaskId: " + taskId);
             }
         }
+    }
+
+    /**
+     * Gets the raid by ID from the specified world.
+     *
+     * @param world  World to look for the raid
+     * @param raidId The ID of the raid
+     * @return An Optional containing the raid if found, otherwise empty
+     */
+    @Nullable
+    private Raid getRaid(final World world, final int raidId) {
+        return world.getRaid(raidId);
     }
 
     /**
