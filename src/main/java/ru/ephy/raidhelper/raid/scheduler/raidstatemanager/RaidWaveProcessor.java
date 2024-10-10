@@ -1,7 +1,11 @@
 package ru.ephy.raidhelper.raid.scheduler.raidstatemanager;
 
+import org.bukkit.entity.Raider;
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidData;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class RaidWaveProcessor {
     private final int bellWorkDelay;
@@ -11,7 +15,11 @@ public class RaidWaveProcessor {
     }
 
     public boolean hasWaveEnded(final RaidData raidData) {
-        return raidData.getRaidersSet().isEmpty();
+        final Set<Raider> raiders = raidData.getRaiderSet() != null
+                ? raidData.getRaiderSet()
+                : new HashSet<>(raidData.getRaidInstance().getRaiders());
+
+        return raiders.isEmpty();
     }
 
     public void processWaveEnd(final RaidData raidData) {

@@ -26,7 +26,6 @@ public class RaidScheduler {
     private final Logger logger;                     // Logger for debugging
 
     private final RaidStateManager raidStateManager; // Handles raid state updates
-    private final Queue<RaidData> raidQueue;         // Queue of raids awaiting processing
     private final Set<RaidData> raidSet;             // Set to ensure no duplicate raids are queued
     private final Set<World> monitoredWorlds;        // Set of worlds where raids are monitored
     private final int raidBatchLimit;                // Max number of raids to process per tick
@@ -36,10 +35,10 @@ public class RaidScheduler {
     /**
      * Initializes the RaidScheduler for periodically processing raids.
      *
-     * @param plugin       The JavaPlugin instance
-     * @param raidManager  Manages raid data across worlds
-     * @param config       Configuration for scheduling and raid checks
-     * @param logger       Logger for debugging and info
+     * @param plugin      The JavaPlugin instance
+     * @param raidManager Manages raid data across worlds
+     * @param config      Configuration for scheduling and raid checks
+     * @param logger      Logger for debugging and info
      */
     public RaidScheduler(final JavaPlugin plugin, final RaidManager raidManager,
                          final Config config, final Logger logger) {
@@ -52,7 +51,6 @@ public class RaidScheduler {
         monitoredWorlds = config.getValidWorlds();
         raidBatchLimit = config.getMaxChecksPerTick();
 
-        raidQueue = new LinkedList<>();
         raidSet = new HashSet<>();
 
         // Initialize Raid State Manager
@@ -65,7 +63,7 @@ public class RaidScheduler {
         // Start the scheduler
         Bukkit.getScheduler().runTaskTimer(
                 plugin,
-                this::queueActiveRaidsUpdate,
+                this::queueActiveRaids,
                 0L,
                 20L
         );
@@ -75,50 +73,20 @@ public class RaidScheduler {
      * Queues active raids from monitored worlds
      * for state checking.
      */
-    private void queueActiveRaidsLegacy() {
-        for (final World world : monitoredWorlds) {
-            final Map<Integer, RaidData> raidDataMap = raidManager.getActiveRaidsByWorld().get(world);
-
-            if (raidDataMap != null && !raidDataMap.isEmpty()) {
-                for (final RaidData raidData : raidDataMap.values()) {
-                    if (raidSet.add(raidData)) {
-                        raidQueue.offer(raidData);
-                    }
-                }
-            }
-        }
-
-        if (!raidQueue.isEmpty()) {
-            if (taskId == -1) {
-                taskId = Bukkit.getScheduler().runTaskTimer(plugin, this::processRaidQueue, 0L, 1L).getTaskId();
-            } else {
-                logger.warning("Cannot process raid queue because the scheduler is busy. TaskId: " + taskId);
-            }
-        }
-    }
-
-    /**
-     * Queues active raids from monitored worlds
-     * for state checking.
-     */
-    private void queueActiveRaidsUpdate() {
+    private void queueActiveRaids() {
         for (final World world : monitoredWorlds) {
             raidManager.getActiveRaidsByWorld().computeIfPresent(world, (w, raidDataMap) -> {
-                for (final RaidData raidData : raidDataMap.values()) {
-                    if (raidSet.add(raidData)) {
-                        raidQueue.offer(raidData);
-                    }
-                }
+                raidSet.addAll(raidDataMap.values());
                 return raidDataMap;
             });
         }
 
-        if (!raidQueue.isEmpty()) {
-            if (taskId == -1) {
-                taskId = Bukkit.getScheduler().runTaskTimer(plugin, this::processRaidQueue, 0L, 1L).getTaskId();
-            } else {
-                logger.warning("Cannot process raid queue because the scheduler is busy. TaskId: " + taskId);
-            }
+        if (!raidSet.isEmpty() && taskId == -1) {
+            taskId = Bukkit.getScheduler().runTaskTimer(
+                    plugin, this::processRaidQueue, 0L, 1L
+            ).getTaskId();
+        } else if (taskId != -1) {
+            logger.warning("Cannot process raid queue because the scheduler is busy. TaskId: " + taskId);
         }
     }
 
@@ -129,22 +97,21 @@ public class RaidScheduler {
      * it schedules another task for the next tick.
      */
     private void processRaidQueue() {
+        final Iterator<RaidData> raidDataIterator = raidSet.iterator();
         int processedCount = 0;
 
-        while (processedCount < raidBatchLimit && !raidQueue.isEmpty()) {
-            final RaidData raidData = raidQueue.poll();
-            raidSet.remove(raidData);
+        while (processedCount < raidBatchLimit && raidDataIterator.hasNext()) {
+            final RaidData raidData = raidDataIterator.next();
             updateRaidState(raidData);
+            raidSet.remove(raidData);
             processedCount++;
         }
 
-        if (raidQueue.isEmpty()) {
-            if (taskId != -1) {
-                Bukkit.getScheduler().cancelTask(taskId);
-                taskId = -1;
-            } else {
-                logger.warning("Cannot cancel the process of the raid queue because the scheduler is asleep. TaskId: " + taskId);
-            }
+        if (!raidDataIterator.hasNext() && taskId != -1) {
+            Bukkit.getScheduler().cancelTask(taskId);
+            taskId = -1;
+        } else if (taskId == -1) {
+            logger.warning("Cannot cancel the process of the raid queue because the scheduler is asleep. TaskId: " + taskId);
         }
     }
 

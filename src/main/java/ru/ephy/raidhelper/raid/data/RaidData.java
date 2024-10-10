@@ -29,10 +29,11 @@ public class RaidData {
     private final World raidWorld;                  // World in which the raid takes place
 
     private Set<Player> playersWithinRaid;          // Set of players within the raid's range
-    private Set<Raider> raidersSet;                 // Set of raiders of the raid
+    private Set<Raider> raiderSet;                 // Set of raiders of the raid
     private boolean teleportEnabled = false;        // Allows raiders to teleport when the bell rings
     private boolean cooldownActive = false;         // Indicates if the raid is in cooldown
     private boolean counterResetAllowed = false;    // Prevents counter reset if false
+    private long lastUpdatedTime;                   // Last updated time of the cache
     private int tickCounter = 0;                    // Tracks time (in ticks) since the raid started or was reset
 
     /**
@@ -57,13 +58,16 @@ public class RaidData {
     @Override
     public String toString() {
         return "RaidData{" +
-                "id=" + raidId +
+                "raidId=" + raidId +
                 ", raidInstance=" + raidInstance +
                 ", raidLocation=" + raidLocation +
                 ", raidWorld=" + raidWorld +
+                ", playersWithinRaid=" + playersWithinRaid +
+                ", raiderSet" + raiderSet +
                 ", isTeleportEnabled=" + teleportEnabled +
                 ", isCooldownActive=" + cooldownActive +
                 ", isCounterResetAllowed=" + counterResetAllowed +
+                ", lastUpdatedTime=" + lastUpdatedTime +
                 ", tickCounter=" + tickCounter +
                 '}';
     }

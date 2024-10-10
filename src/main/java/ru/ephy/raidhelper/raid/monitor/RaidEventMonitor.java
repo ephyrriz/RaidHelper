@@ -24,7 +24,6 @@ public class RaidEventMonitor implements Listener {
     private final RaidManager raidManager;    // Manages raid-related operations
     private final Logger logger;              // Logger for debugging
 
-    private final Queue<Integer> raidQueue;      // Queue for raids being processed
     private final Set<Integer> raidSet;          // Set to ensure no duplicate raids are queued
     private final Set<World> monitoredWorlds; // Worlds that are monitored for raid activity
     private final int raidBatchLimit;         // Maximum number of raids processed per tick
@@ -49,7 +48,6 @@ public class RaidEventMonitor implements Listener {
         monitoredWorlds = config.getValidWorlds();
         raidBatchLimit = config.getMaxChecksPerTick();
 
-        raidQueue = new LinkedList<>();
         raidSet = new HashSet<>();
     }
 
@@ -89,12 +87,12 @@ public class RaidEventMonitor implements Listener {
         for (final Raid raid : raidsInWorld) {
             final int raidId = raid.getId();
 
-            if (raidManager.isRaidRegistered(getRaid(world, raidId)) && raidSet.add(raidId)) {
-                raidQueue.offer(raidId);
+            if (raidManager.isRaidRegistered(raid)) {
+                raidSet.add(raidId);
             }
         }
 
-        if (!raidQueue.isEmpty() && taskId == -1) {
+        if (!raidSet.isEmpty() && taskId == -1) {
             taskId = Bukkit.getScheduler().runTaskTimer(
                     plugin, () -> processRaidsInBatches(world), 0L, 1L
             ).getTaskId();
@@ -108,21 +106,23 @@ public class RaidEventMonitor implements Listener {
      * limiting the number per tick.
      */
     private void processRaidsInBatches(final World world) {
+        final Iterator<Integer> raidIterator = raidSet.iterator();
         int processedCount = 0;
 
-        while (processedCount < raidBatchLimit && !raidQueue.isEmpty()) {
-            final int raidId = raidQueue.poll();
+        while (processedCount < raidBatchLimit && raidIterator.hasNext()) {
+            final int raidId = raidIterator.next();
             final Raid raid = getRaid(world, raidId);
 
             if (raid != null) {
                 registerRaid(raid);
+                raidSet.remove(raidId);
                 processedCount++;
             } else {
                 logger.warning("The raid by id " + raidId + " is null");
             }
         }
 
-        if (raidQueue.isEmpty() && taskId != -1) {
+        if (!raidIterator.hasNext() && taskId != -1) {
             Bukkit.getScheduler().cancelTask(taskId);
             taskId = -1;
         } else if (taskId == -1) {

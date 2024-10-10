@@ -16,7 +16,7 @@ public class RaidStateManager {
     private final NotificationManager notificationManager;
 
     public void updateRaidState(final RaidData raidData) {
-        cacheManager.updateCacheIfNeeded(raidData);
+        cacheManager.addRaidData(raidData);
 
         if (waveProcessor.hasWaveEnded(raidData)) {
             waveProcessor.processWaveEnd(raidData);

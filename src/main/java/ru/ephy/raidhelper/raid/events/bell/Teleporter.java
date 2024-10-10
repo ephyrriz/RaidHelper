@@ -11,7 +11,9 @@ import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidData;
 import ru.ephy.raidhelper.raid.data.RaidManager;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -137,8 +139,13 @@ public class Teleporter {
             return;
         }
 
-        Bukkit.getScheduler().runTaskLater(plugin, () ->
-                raidData.getRaidersSet().forEach(raider -> teleportRaider(raider, targetLocation)), delay);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            final Set<Raider> raiders = raidData.getRaiderSet() != null
+                    ? raidData.getRaiderSet()
+                    : new HashSet<>(raidData.getRaidInstance().getRaiders());
+
+            raiders.forEach(raider -> teleportRaider(raider, targetLocation));
+        }, delay);
     }
 
     /**
