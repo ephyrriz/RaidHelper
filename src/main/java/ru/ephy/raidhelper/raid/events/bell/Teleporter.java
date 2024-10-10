@@ -90,9 +90,12 @@ public class Teleporter {
 
         boolean allOnCooldown = true;   // If all raids are in cooldown
         boolean someOnCooldown = false; // If some of raids are not in cooldown
+        boolean raidsNearby = false;
 
         for (final RaidData raidData : raidMap.values()) {
             if (raidData.isTeleportEnabled() && isWithinTeleportRange(raidData.getRaidLocation(), bellLocation)) {
+                raidsNearby = true;
+
                 if (raidData.isCooldownActive()) {
                     someOnCooldown = true;
                 } else {
@@ -102,7 +105,11 @@ public class Teleporter {
                 }
             }
         }
-        sendMessage(player, allOnCooldown, someOnCooldown);
+
+        if (raidsNearby) {
+            sendMessage(player, allOnCooldown, someOnCooldown);
+        }
+
         pool.returnTeleporter(this);
     }
 

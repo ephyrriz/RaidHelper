@@ -58,18 +58,18 @@ public class RaidCacheManager {
     }
 
     public void updateCacheIfNeeded(final RaidData raidData) {
-        final long currentTime = System.currentTimeMillis() / 50;
-        final long lastUpdatedTime = raidData.getLastUpdatedTime();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                final long currentTime = System.currentTimeMillis() / 50;
+                final long lastUpdatedTime = raidData.getLastUpdatedTime();
 
-        if (currentTime - lastUpdatedTime > cacheExpirationTime) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
+                if (currentTime - lastUpdatedTime > cacheExpirationTime) {
                     raidData.setPlayersWithinRaid(new HashSet<>(raidData.getRaidLocation().getNearbyPlayers(notifyRadius)));
                     raidData.setRaiderSet(new HashSet<>(raidData.getRaidInstance().getRaiders()));
                     raidData.setLastUpdatedTime(currentTime);
                 }
-            }.runTask(plugin);
-        }
+            }
+        }.runTask(plugin);
     }
 }
