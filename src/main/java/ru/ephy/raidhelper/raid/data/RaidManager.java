@@ -37,7 +37,7 @@ public class RaidManager {
         activeRaidsByWorld.computeIfAbsent(raidWorld, world -> new HashMap<>())
                           .computeIfAbsent(raidId, id -> {
                               final RaidData raidData = new RaidData(raidId, raid, raidLocation, raidWorld);
-                              raidData.getLastUpdatedTime().set(System.currentTimeMillis() / 50);
+                              raidData.setLastUpdatedTime(System.currentTimeMillis() / 50); // Divides by 50 to transate into ticks. 1 tick = 50ms
                               return raidData;
                           });
     }

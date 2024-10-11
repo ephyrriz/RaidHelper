@@ -24,18 +24,18 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequiredArgsConstructor
 public class RaidData {
 
-    private final int raidId;                       // Unique identifier for the raid
-    private final Raid raidInstance;                // Reference to the Raid instance
-    private final Location raidLocation;            // Location where the raid is occurring
-    private final World raidWorld;                  // World in which the raid takes place
+    private final int raidId;                              // Unique identifier for the raid
+    private final Raid raidInstance;                       // Reference to the Raid instance
+    private final Location raidLocation;                   // Location where the raid is occurring
+    private final World raidWorld;                         // World in which the raid takes place
 
-    private Set<Player> playersWithinRaid;          // Set of players within the raid's range
-    private Set<Raider> raiderSet;                 // Set of raiders of the raid
-    private boolean teleportEnabled = false;        // Allows raiders to teleport when the bell rings
-    private boolean cooldownActive = false;         // Indicates if the raid is in cooldown
-    private boolean counterResetAllowed = false;    // Prevents counter reset if false
-    private AtomicLong lastUpdatedTime;             // Last updated time of the cache
-    private int tickCounter = 0;                    // Tracks time (in ticks) since the raid started or was reset
+    private Set<Player> playersWithinRaid;                 // Set of players within the raid's range
+    private Set<Raider> raiderSet;                         // Set of raiders of the raid
+    private boolean teleportEnabled = false;               // Allows raiders to teleport when the bell rings
+    private boolean cooldownActive = false;                // Indicates if the raid is in cooldown
+    private boolean counterResetAllowed = false;           // Prevents counter reset if false
+    private AtomicLong lastUpdatedTime = new AtomicLong(); // Last updated time of the cache
+    private int tickCounter = 0;                           // Tracks time (in ticks) since the raid started or was reset
 
     /**
      * Increments the tick counter by one.
@@ -49,6 +49,24 @@ public class RaidData {
      */
     public void resetCounter() {
         tickCounter = 0;
+    }
+
+    /**
+     * Returns the current lastUpdateTime value.
+     *
+     * @return lastUpdateTime value.
+     */
+    public long getLastUpdatedTime() {
+        return lastUpdatedTime.get();
+    }
+
+    /**
+     * Sets the new value for lastUpdateTime.
+     *
+     * @param time the new time.
+     */
+    public void setLastUpdatedTime(final long time) {
+        lastUpdatedTime.set(time);
     }
 
     /**

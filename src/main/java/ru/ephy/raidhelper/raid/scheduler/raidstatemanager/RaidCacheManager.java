@@ -91,10 +91,10 @@ public class RaidCacheManager {
      */
     private boolean doWeNeedToUpdateCache(final RaidData raidData) {
         final long currentTime = System.currentTimeMillis() / 50; // We get current time in ticks. 1 tick has 50ms
-        final long lastUpdatedTime = raidData.getLastUpdatedTime().get();
+        final long lastUpdatedTime = raidData.getLastUpdatedTime();
 
         if (currentTime - lastUpdatedTime > cacheExpirationTime) { // We compare the amount of time passed
-            raidData.getLastUpdatedTime().set(currentTime); // Updates the last updated time if the cache should be updated
+            raidData.setLastUpdatedTime(currentTime); // Updates the last updated time if the cache should be updated
             return true;
         }
         return false;
