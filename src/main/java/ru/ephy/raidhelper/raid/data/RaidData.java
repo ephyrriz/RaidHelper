@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Raider;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Represents data associated with a specific raid,
@@ -33,7 +34,7 @@ public class RaidData {
     private boolean teleportEnabled = false;        // Allows raiders to teleport when the bell rings
     private boolean cooldownActive = false;         // Indicates if the raid is in cooldown
     private boolean counterResetAllowed = false;    // Prevents counter reset if false
-    private long lastUpdatedTime;                   // Last updated time of the cache
+    private AtomicLong lastUpdatedTime;             // Last updated time of the cache
     private int tickCounter = 0;                    // Tracks time (in ticks) since the raid started or was reset
 
     /**

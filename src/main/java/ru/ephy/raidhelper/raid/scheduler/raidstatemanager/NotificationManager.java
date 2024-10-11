@@ -14,7 +14,7 @@ public class NotificationManager {
 
     public NotificationManager(final Config config) {
         actionBarMessage = config.getRingMessage();
-        notifyRadius = Math.pow(config.getRadius(), 2);
+        notifyRadius = config.getRadius();
     }
 
     public void notifyPlayers(final RaidData raidData) {
