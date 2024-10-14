@@ -96,7 +96,7 @@ public class RaidScheduler {
      * If there are still raids left in the queue,
      * it schedules another task for the next tick.
      */
-    private void processRaidQueue() {
+    private synchronized void processRaidQueue() {
         final Iterator<RaidData> raidDataIterator = raidSet.iterator();
         int processedCount = 0;
 

@@ -1,8 +1,7 @@
 package ru.ephy.raidhelper.raid.scheduler.raidstatemanager;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-
 import ru.ephy.raidhelper.config.Config;
 import ru.ephy.raidhelper.raid.data.RaidData;
 
@@ -22,6 +21,7 @@ public class RaidCacheManager {
     private final double notifyRadius;
     private final int cacheExpirationTime;
     private final int batchSize;
+    private int taskId = -1;
 
     /**
      * Initializes the RaidCacheManager with the plugin
@@ -60,27 +60,25 @@ public class RaidCacheManager {
      * if necessary based on expiration time.
      */
     private void startCacheScheduler() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!cache.isEmpty()) {
-                    int processedCount = 0;
+        taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            if (!cache.isEmpty()) {
+                int processedCount = 0;
 
-                    while (processedCount < batchSize && !cache.isEmpty()) {
-                        final RaidData raidData = cache.poll();
+                while (processedCount < batchSize && !cache.isEmpty()) {
+                    final RaidData raidData = cache.poll();
 
-                        if (raidData != null) {
-                            if (doWeNeedToUpdateCache(raidData)) {
-                                updateCacheIfNeeded(raidData);
-                            }
-
-                            cache.remove(raidData);
-                            processedCount++;
-                        }
+                    if (raidData != null && doWeNeedToUpdateCache(raidData)) {
+                        updateCacheIfNeeded(raidData);
                     }
+
+                    processedCount++;
+                }
+            } else {
+                if (Bukkit.getScheduler().isCurrentlyRunning(taskId)) {
+                    Bukkit.getScheduler().cancelTask(taskId);
                 }
             }
-        }.runTaskTimerAsynchronously(plugin, 0L, 20L);
+        }, 0L, 1L).getTaskId();
     }
 
     /**
@@ -107,12 +105,9 @@ public class RaidCacheManager {
      * @param raidData The RaidData whose cache needs to be updated
      */
     public void updateCacheIfNeeded(final RaidData raidData) {
-        new BukkitRunnable() {
-            @Override
-            public void run() { // We cache new values here
-                raidData.setPlayersWithinRaid(new HashSet<>(raidData.getRaidLocation().getNearbyPlayers(notifyRadius)));
-                raidData.setRaiderSet(new HashSet<>(raidData.getRaidInstance().getRaiders()));
-            }
-        }.runTask(plugin);
+        Bukkit.getScheduler().runTask(plugin, () -> { // We cache new values here
+            raidData.setPlayersWithinRaid(new HashSet<>(raidData.getRaidLocation().getNearbyPlayers(notifyRadius)));
+            raidData.setRaiderSet(new HashSet<>(raidData.getRaidInstance().getRaiders()));
+        });
     }
 }
