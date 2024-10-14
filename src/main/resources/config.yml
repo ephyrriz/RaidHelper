@@ -8,8 +8,8 @@ settings:
     some_cooldown: "Some raids are in cooldown, but others have teleported raiders."
 
   mechanics:
+    bell_work_delay: 60         # Seconds before the bell works since the start of a wave
     bell_cooldown: 100          # Ticks before the bell can be used again
-    bell_work_delay: 60         # Ticks before the bell works since the start of a wave
     teleport_delay: 60          # Delay in ticks before raiders teleport
     spawn_height: 10            # Height above the bell where raiders spawn
     effect_radius: 50           # Radius of the bell's effect
