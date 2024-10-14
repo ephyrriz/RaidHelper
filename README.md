@@ -1,5 +1,4 @@
-To-Do:
-
-RaidHelper:
-- Batch process for raiders teleport.
-- Cache collection of players and raiders of each raid, delete after some time to avoid constant references to them.
+# RaidHelper
+A minecraft plugin. Helps with raids when you can't find the last 
+raiders because they might have gotten somewhere far away from the 
+village (like caves); teleports raiders to the bell as you ring it.
