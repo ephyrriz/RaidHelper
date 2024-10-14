@@ -1,7 +1,7 @@
 # RaidHelper Plugin Configuration
 
 settings:
-  messages:
+  messages: # Legacy format is supported
     teleport: "Raiders on their way to your bell!"
     ring: "If you can't find the raiders, just ring the bell."
     cooldown: "Please wait before ringing the bell again."
